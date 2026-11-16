@@ -1,80 +1,145 @@
-# tiny-chess-01 starter (MIT, see LICENSE): a working entry to start from.
-# It plays every game of the gauntlet through the env at MAKEFUN_ENV_URL:
-# POST /game {} serves the game in play, POST /move {game, move} plays a
-# move, and the loop ends when the env answers status "done".
-#
-# Its chess is one line deep: of the legal moves the env lists, it plays the
-# one that captures the most valuable piece, read from the FEN. Ties go, in
-# order, to the better promotion, the cheaper moving piece, then the first
-# move in UCI order. No clock and no random: the same position always gets
-# the same move, so the trial's replay matches.
-#
-# Make it stronger with a real search under a fixed node or depth budget,
-# never a clock. The rule: this file is the whole engine, at most 4,096
-# bytes as committed, Python 3.13 standard library only.
-
-import json
-import os
-import sys
-import urllib.error
-import urllib.request
-
-ENV_URL = os.environ.get("MAKEFUN_ENV_URL") or sys.exit("MAKEFUN_ENV_URL is not set")
-
-# Piece values by FEN letter, case-insensitive. The king is never captured;
-# its 100 only ranks it last as the moving piece.
-VALUE = {"p": 1, "n": 3, "b": 3, "r": 5, "q": 9, "k": 100}
-
-
-def post(path, body):
-    """POST a JSON body to the env and return its JSON answer."""
-    req = urllib.request.Request(
-        ENV_URL + path,
-        data=json.dumps(body).encode(),
-        headers={"content-type": "application/json"},
-    )
-    try:
-        with urllib.request.urlopen(req) as res:
-            return json.load(res)
-    except urllib.error.HTTPError as e:
-        sys.exit(f"{path}: HTTP {e.code} {e.read().decode(errors='replace')}")
-
-
-def board_of(fen):
-    """The FEN's pieces as {square: letter}, e.g. {"e1": "K", "e8": "k"}."""
-    board = {}
-    for i, row in enumerate(fen.split()[0].split("/")):
-        file = 0
-        for c in row:
-            if c.isdigit():
-                file += int(c)
-            else:
-                board["abcdefgh"[file] + str(8 - i)] = c
-                file += 1
-    return board
-
-
-def choose(fen, legal):
-    """The legal UCI move that takes the most, with the fixed tie-break."""
-    board = board_of(fen)
-
-    def rank(move):
-        mover = board[move[:2]].lower()
-        victim = board.get(move[2:4])
-        if victim is None and mover == "p" and move[0] != move[2]:
-            victim = "p"  # en passant: the pawn taken is beside the target
-        taken = VALUE[victim.lower()] if victim else 0
-        promo = VALUE[move[4]] if len(move) == 5 else 0
-        return (-taken, -promo, VALUE[mover], move)
-
-    return min(legal, key=rank)
-
-
-while True:
-    g = post("/game", {})
-    if g["status"] == "done":
-        break
-    while g["status"] == "your_move":
-        g = post("/move", {"game": g["game"], "move": choose(g["fen"], g["legal_moves"])})
-    print(f"game {g['game']}: {g['outcome']} by {g['reason']}", file=sys.stderr)
-print(f"done: {g.get('wins')} won, {g.get('draws')} drawn, {g.get('losses')} lost", file=sys.stderr)
+import json,os,sys,urllib.request
+E=os.environ.get("MAKEFUN_ENV_URL")
+V={'p':100,'n':320,'b':330,'r':500,'q':900,'k':20000}
+def P(f):
+ p=f.split();b=['.']*64
+ for r,w in enumerate(reversed(p[0].split('/'))):
+  c=0
+  for ch in w:
+   if ch.isdigit():c+=int(ch)
+   else:b[r*8+c]=ch;c+=1
+ return b,1if p[1]=='w'else 0,p[2],-1 if p[3]=='-'else ord(p[3][0])-97+8*(int(p[3][1])-1)
+def A(b,s,w):
+ for o,n in[((-17,-15,-10,-6,6,10,15,17),'N'),((-9,-8,-7,-1,1,7,8,9),'K')]:
+  for x in o:
+   t=s+x
+   if 0<=t<64 and abs((t&7)-(s&7))<=(2if n=='N'else 1)and b[t]==(n if w else n.lower()):return 1
+ for o in([-7,-9]if w else[7,9]):
+  t=s+o
+  if 0<=t<64 and abs((t&7)-(s&7))==1 and b[t]==('P'if w else'p'):return 1
+ for os,sc in[([-8,8,-1,1],'RQ'),([-9,-7,7,9],'BQ')]:
+  for o in os:
+   t=s
+   while 0<=(t:=t+o)<64 and abs((t&7)-((t-o)&7))<=1:
+    p=b[t]
+    if p!='.'and p in(sc if w else sc.lower())and p.isupper()==w:return 1
+    if p!='.':break
+ return 0
+def G(b,w,c,ep):
+ m=[]
+ for f,p in enumerate(b):
+  if p=='.'or p.isupper()!=w:continue
+  l=p.lower();r,col=f>>3,f&7
+  if l in'nk':
+   for o in([-17,-15,-10,-6,6,10,15,17]if l=='n'else[-9,-8,-7,-1,1,7,8,9]):
+    t=f+o
+    if 0<=t<64 and abs((t&7)-col)<=(2if l=='n'else 1)and(b[t]=='.'or b[t].isupper()!=w):m.append((f,t,''))
+   if l=='k':
+    for s,ks,sqs,chk in[('K',6,(5,6),(4,5,6)),('Q',2,(1,2,3),(4,3,2)),('k',62,(61,62),(60,61,62)),('q',58,(57,58,59),(60,59,58))]:
+     if s in c and w==(s.isupper())and all(b[i]=='.'for i in sqs)and not any(A(b,x,not w)for x in chk):m.append((4 if w else 60,ks,''))
+  elif l in'rbq':
+   for o in({'r':(-8,8,-1,1),'b':(-9,-7,7,9)}.get(l,(-8,8,-1,1,-9,-7,7,9))):
+    t=f
+    while 0<=(t:=t+o)<64 and abs((t&7)-((t-o)&7))<=1:
+     d=b[t]
+     if d=='.':m.append((f,t,''))
+     elif d.isupper()!=w:m.append((f,t,''));break
+     else:break
+  elif l=='p':
+   d=8 if w else-8;t=f+d
+   if 0<=t<64 and b[t]=='.':
+    if(w and t>>3==7)or(not w and t>>3==0):
+     for pr in['q','r','b','n']:m.append((f,t,pr))
+    else:
+     m.append((f,t,''))
+     if((w and r==1)or(not w and r==6))and b[f+d*2]=='.':m.append((f,f+d*2,''))
+   for do in[-1,1]:
+    tc=col+do
+    if 0<=tc<8 and 0<=(t:=f+d+do)<64 and abs((t&7)-col)==1 and((b[t]!='.'and b[t].isupper()!=w)or t==ep):
+     if(w and t>>3==7)or(not w and t>>3==0):
+      for pr in['q','r','b','n']:m.append((f,t,pr))
+     else:m.append((f,t,''))
+ return m
+def M(b,w,c,ep,m):
+ fr,to,pr=m;nb=b[:];p=nb[fr];nb[fr]='.';cap=nb[to]
+ if p.lower()=='p'and to==ep and cap=='.':nb[to-8 if w else to+8]='.'
+ if p.lower()=='k':
+  if fr==4 and to==6:nb[7]='.';nb[5]='R'
+  elif fr==4 and to==2:nb[0]='.';nb[3]='R'
+  elif fr==60 and to==62:nb[63]='.';nb[61]='r'
+  elif fr==60 and to==58:nb[56]='.';nb[59]='r'
+ nb[to]=(pr.upper()if w else pr.lower())if pr else p
+ nc=c
+ for k,x in[('K','K'),('Q','Q'),('k','k'),('q','q')]:
+  if p==k or fr==[0,7,56,63][['Q','K','q','k'].index(x)]:nc=nc.replace(x,'')
+ return nb,1-w,nc or'-',(fr+to)//2 if p.lower()=='p'and abs(to-fr)==16 else-1
+def EV(b,w):
+ s=np=wb=bb=0
+ for i,p in enumerate(b):
+  if p=='.':continue
+  l=p.lower();u=p.isupper();v=V[l];r,f=i>>3,i&7
+  if not u:r=7-r
+  if l not in'pk':np+=v
+  if p=='B':wb+=1
+  if p=='b':bb+=1
+  d=abs(3.5-f)+abs(3.5-r)
+  pst=5*(r-1)+(10 if f in(3,4)else 0)if l=='p'else(36-6*d if l in'nb'else(10 if r==6 and l=='r'else(36-6*d if np<1500 else 20-4*(min(f,7-f)+min(r,7-r)))))
+  s+=(v+pst)if u else-(v+pst)
+ bs=30*(wb>=2)-30*(bb>=2)
+ return(s+bs)if w else-(s+bs)
+ND=0
+def S(b,w,c,ep,d,a,beta):
+ global ND;ND+=1
+ if ND>30000:return 0
+ ev=EV(b,w)
+ if d<=0:
+  if ev>=beta:return beta
+  if a<ev:a=ev
+ moves=G(b,w,c,ep)
+ if d<=0:moves=[m for m in moves if b[m[1]]!='.'or m[1]==ep or m[2]]
+ scored=sorted([(V.get(b[m[1]].lower(),0)*10-V.get(b[m[0]].lower(),0),m)for m in moves],key=lambda x:x[0],reverse=True)
+ legal=0
+ for _,m in scored:
+  nb,nw,nc,nep=M(b,w,c,ep,m)
+  ks=next((sq for sq,p in enumerate(nb)if p==('K'if w else'k')),-1)
+  if ks!=-1 and A(nb,ks,nw):continue
+  legal+=1
+  sc=-S(nb,nw,nc,nep,d-1,-beta,-a)
+  if ND>30000:return 0
+  if sc>=beta:return beta
+  if sc>a:a=sc
+ if not legal:
+  ks=next((sq for sq,p in enumerate(b)if p==('K'if w else'k')),-1)
+  return(-20000+d if ks!=-1 and A(b,ks,1-w)else 0)if d else ev
+ return a
+def choose(fen,legal):
+ global ND;ND=0;b,w,c,ep=P(fen);best=legal[0];val=-999999
+ for d in range(1,7):
+  a,beta=-999999,999999;lb=best;lv=val
+  for m_str in legal:
+   fr=ord(m_str[0])-97+8*(int(m_str[1])-1);to=ord(m_str[2])-97+8*(int(m_str[3])-1)
+   pr=m_str[4] if len(m_str)==5 else''
+   nb,nw,nc,nep=M(b,w,c,ep,(fr,to,pr))
+   sc=-S(nb,nw,nc,nep,d-1,-beta,-a)
+   if ND>30000:break
+   if sc>lv:lv=sc;lb=m_str
+   if lv>a:a=lv
+  if ND>30000:break
+  best,val=lb,lv
+  if d>=6:break
+ return best if best in legal else legal[0]
+def post(p,b):
+ r=urllib.request.Request(E+p,data=json.dumps(b).encode(),headers={"content-type":"application/json"})
+ try:
+  with urllib.request.urlopen(r) as x:return json.load(x)
+ except urllib.error.HTTPError as ex:sys.exit(f"{p}: {ex.code}")
+if __name__=="__main__":
+ if not E:sys.exit("ENV not set")
+ while True:
+  g=post("/game",{})
+  if g["status"]=="done":break
+  while g["status"]=="your_move":
+   m=choose(g["fen"],g["legal_moves"])
+   if m not in g["legal_moves"]:m=g["legal_moves"][0]
+   g=post("/move",{"game":g["game"],"move":m})
+  print(f"game {g['game']}: {g['outcome']}",file=sys.stderr)
