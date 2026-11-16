@@ -1,6 +1,10 @@
 import json,os,sys,urllib.request
 E=os.environ.get("MAKEFUN_ENV_URL")
 V={'p':100,'n':320,'b':330,'r':500,'q':900,'k':20000}
+TM,TE={},{}
+for l in'pnbrqk':
+ TM[l]=[V[l]+(5*(i>>3)-(5 if l=='p'else 0)+(10 if(i&7)in(3,4)else 0)if l=='p'else(36-6*(abs(3.5-(i&7))+abs(3.5-(i>>3)))if l in'nb'else(10 if(i>>3)==6 and l=='r'else 20-4*(min(i&7,7-(i&7))+min(i>>3,7-(i>>3))))))for i in range(64)]
+ TE[l]=[V[l]+(5*(i>>3)-(5 if l=='p'else 0)+(10 if(i&7)in(3,4)else 0)if l=='p'else(36-6*(abs(3.5-(i&7))+abs(3.5-(i>>3)))if l in'nb'else(10 if(i>>3)==6 and l=='r'else 36-6*(abs(3.5-(i&7))+abs(3.5-(i>>3))))))for i in range(64)]
 def P(f):
  p=f.split();b=['.']*64
  for r,w in enumerate(reversed(p[0].split('/'))):
@@ -13,7 +17,7 @@ def A(b,s,w):
  for o,n in[((-17,-15,-10,-6,6,10,15,17),'N'),((-9,-8,-7,-1,1,7,8,9),'K')]:
   for x in o:
    t=s+x
-   if 0<=t<64 and abs((t&7)-(s&7))<=(2 if n=='N' else 1)and b[t]==(n if w else n.lower()):return 1
+   if 0<=t<64 and abs((t&7)-(s&7))<=(2 if n=='N'else 1)and b[t]==(n if w else n.lower()):return 1
  for o in([-7,-9]if w else[7,9]):
   t=s+o
   if 0<=t<64 and abs((t&7)-(s&7))==1 and b[t]==('P'if w else'p'):return 1
@@ -33,7 +37,7 @@ def G(b,w,c,e):
   if l in'nk':
    for o in((-17,-15,-10,-6,6,10,15,17)if l=='n'else(-9,-8,-7,-1,1,7,8,9)):
     t=f+o
-    if 0<=t<64 and abs((t&7)-col)<=(2 if l=='n' else 1)and(b[t]=='.'or b[t].isupper()!=w):m.append((f,t,''))
+    if 0<=t<64 and abs((t&7)-col)<=(2 if l=='n'else 1)and(b[t]=='.'or b[t].isupper()!=w):m.append((f,t,''))
    if l=='k':
     for s,ks,sq,ch in[('K',6,(5,6),(4,5,6)),('Q',2,(1,2,3),(4,3,2)),('k',62,(61,62),(60,61,62)),('q',58,(57,58,59),(60,59,58))]:
      if s in c and w==(s.isupper())and all(b[i]=='.'for i in sq)and not any(A(b,x,not w)for x in ch):m.append((4 if w else 60,ks,''))
@@ -75,18 +79,17 @@ def EV(b,w):
  s=np=wb=bb=0
  for i,p in enumerate(b):
   if p=='.':continue
-  l,u,v,r,f=p.lower(),p.isupper(),V[p.lower()],i>>3,i&7
-  if not u:r=7-r
-  if l not in'pk':np+=v
-  wb+=p=='B';bb+=p=='b';d=abs(3.5-f)+abs(3.5-r)
-  pst=5*(r-1)+(10 if f in(3,4)else 0)if l=='p'else(36-6*d if l in'nb'else(10 if r==6 and l=='r'else(36-6*d if np<1500 else 20-4*(min(f,7-f)+min(r,7-r)))))
-  s+=(v+pst)if u else-(v+pst)
+  u,l=p.isupper(),p.lower()
+  if l not in'pk':np+=V[l]
+  wb+=p=='B';bb+=p=='b'
+  val=(TE if np<1500 else TM)[l][i if u else i^56]
+  s+=val if u else -val
  bs=30*(wb>=2)-30*(bb>=2)
  return(s+bs)if w else-(s+bs)
 ND=0
 def S(b,w,c,e,d,a,be):
  global ND;ND+=1
- if ND>12000:return 0
+ if ND>30000:return 0
  ev=EV(b,w)
  if d<=0:
   if ev>=be:return be
@@ -101,7 +104,7 @@ def S(b,w,c,e,d,a,be):
   if ks!=-1 and A(nb,ks,nw):continue
   lg+=1
   sc=-S(nb,nw,nc,ne,d-1,-be,-a)
-  if ND>12000:return 0
+  if ND>30000:return 0
   if sc>=be:return be
   if sc>a:a=sc
  if not lg:
@@ -110,19 +113,19 @@ def S(b,w,c,e,d,a,be):
  return a
 def choose(fen,legal):
  global ND;ND=0;b,w,c,e=P(fen);best=legal[0];val=-999999
- for d in range(1,6):
+ for d in range(1,7):
   a,be=-999999,999999;lb=best;lv=val
   for m_str in legal:
    fr=ord(m_str[0])-97+8*(int(m_str[1])-1);to=ord(m_str[2])-97+8*(int(m_str[3])-1)
    pr=m_str[4] if len(m_str)==5 else''
    nb,nw,nc,ne=M(b,w,c,e,(fr,to,pr))
    sc=-S(nb,nw,nc,ne,d-1,-be,-a)
-   if ND>12000:break
+   if ND>30000:break
    if sc>lv:lv=sc;lb=m_str
    if lv>a:a=lv
-  if ND>12000:break
+  if ND>30000:break
   best,val=lb,lv
-  if d>=5:break
+  if d>=6:break
  return best if best in legal else legal[0]
 def post(p,b):
  r=urllib.request.Request(E+p,data=json.dumps(b).encode(),headers={"content-type":"application/json"})
