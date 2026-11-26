@@ -3,11 +3,12 @@
  */
 
 const DEFAULT_COLOR = "#D9232E";
-const SECONDARY_COLOR = "#3E6FB0";
-const MUTE_COLOR = "#5B6B82";
-const INK_COLOR = "#0B1526";
-const GRID_COLOR = "#E3E8F0";
-const GRAD_END = "#F06423";
+const SECONDARY_COLOR = "rgba(10, 15, 30, 0.55)";
+const MUTE_COLOR = "#5A6472";
+const INK_COLOR = "#0A0F1E";
+const GRID_COLOR = "#E6E2D8";
+const GRAD_START = "#B30D1E";
+const GRAD_END = "#E8352C";
 
 export function lineChart(points, options = {}) {
   const {
@@ -89,7 +90,8 @@ export function lineChart(points, options = {}) {
     const r = isLast ? 4 : 3;
     const dotColor = isLast ? DEFAULT_COLOR : color;
     const strokeWidth = isLast ? 2 : 1.5;
-    return `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${dotColor}" stroke="#FFFFFF" stroke-width="${strokeWidth}"/>`;
+    const dotClass = isLast ? ' class="pop-dot"' : '';
+    return `<circle${dotClass} cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${dotColor}" stroke="#FFFFFF" stroke-width="${strokeWidth}"/>`;
   }).join('');
 
   const lastPoint = coords[coords.length - 1];
@@ -114,10 +116,10 @@ export function lineChart(points, options = {}) {
       ${xLabels}
 
       <!-- Area Fill -->
-      <path d="${areaPathD}" fill="url(#lineAreaGrad)" stroke="none"/>
+      <path class="fade-area" d="${areaPathD}" fill="url(#lineAreaGrad)" stroke="none"/>
 
       <!-- Series Path -->
-      <path d="${pathD}" fill="none" stroke="${DEFAULT_COLOR}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <path class="draw-line" d="${pathD}" fill="none" stroke="${DEFAULT_COLOR}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
       
       <!-- Data Dots & Callout -->
       ${dots}
@@ -198,12 +200,14 @@ export function tradeChart(subSeries, options = {}) {
   const expDots = expCoords.map((c, i) => {
     const isLast = i === expCoords.length - 1;
     const r = isLast ? 4 : 3;
-    return `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="url(#expGrad)" stroke="#FFFFFF" stroke-width="${isLast ? 2 : 1.5}"/>`;
+    const dotClass = isLast ? ' class="pop-dot"' : '';
+    return `<circle${dotClass} cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="url(#expGrad)" stroke="#FFFFFF" stroke-width="${isLast ? 2 : 1.5}"/>`;
   }).join('');
   const impDots = impCoords.map((c, i) => {
     const isLast = i === impCoords.length - 1;
     const r = isLast ? 4 : 3;
-    return `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${SECONDARY_COLOR}" stroke="#FFFFFF" stroke-width="${isLast ? 2 : 1.5}"/>`;
+    const dotClass = isLast ? ' class="pop-dot"' : '';
+    return `<circle${dotClass} cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${SECONDARY_COLOR}" stroke="#FFFFFF" stroke-width="${isLast ? 2 : 1.5}"/>`;
   }).join('');
 
   const lastExp = expCoords[expCoords.length - 1];
@@ -216,7 +220,7 @@ export function tradeChart(subSeries, options = {}) {
       <title>${title}</title>
       <defs>
         <linearGradient id="expGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="${DEFAULT_COLOR}"/>
+          <stop offset="0%" stop-color="${GRAD_START}"/>
           <stop offset="100%" stop-color="${GRAD_END}"/>
         </linearGradient>
       </defs>
@@ -237,8 +241,8 @@ export function tradeChart(subSeries, options = {}) {
       </g>
 
       <!-- Paths -->
-      <path d="${expPathD}" fill="none" stroke="url(#expGrad)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-      <path d="${impPathD}" fill="none" stroke="${SECONDARY_COLOR}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <path class="draw-line" d="${expPathD}" fill="none" stroke="url(#expGrad)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <path class="draw-line" d="${impPathD}" fill="none" stroke="${SECONDARY_COLOR}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
       
       ${expDots}
       ${impDots}
@@ -284,7 +288,7 @@ export function barChart(items, options = {}) {
     const y = getY(item.value);
     const h = margin.top + chartHeight - y;
     return `
-      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="url(#barGrad)" rx="4"/>
+      <rect class="grow-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="url(#barGrad)" rx="4"/>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle" font-size="10" fill="${INK_COLOR}" font-weight="600">${item.value.toFixed(decimals)}</text>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${(margin.top + chartHeight + 16).toFixed(1)}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}" transform="rotate(-35, ${(x + barWidth / 2).toFixed(1)}, ${(margin.top + chartHeight + 16).toFixed(1)})">${item.label}</text>
     `;
@@ -295,7 +299,7 @@ export function barChart(items, options = {}) {
       <title>${title}</title>
       <defs>
         <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="${DEFAULT_COLOR}"/>
+          <stop offset="0%" stop-color="${GRAD_START}"/>
           <stop offset="100%" stop-color="${GRAD_END}"/>
         </linearGradient>
       </defs>
@@ -334,7 +338,7 @@ export function hbarChart(items, options = {}) {
 
     return `
       <text x="182" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="end" font-size="12" fill="${INK_COLOR}" font-weight="500">${item.label}</text>
-      <rect x="${margin.left}" y="${y.toFixed(1)}" width="${Math.max(barW, 2).toFixed(1)}" height="${barH.toFixed(1)}" fill="url(#barGrad)" rx="4"/>
+      <rect class="grow-bar" x="${margin.left}" y="${y.toFixed(1)}" width="${Math.max(barW, 2).toFixed(1)}" height="${barH.toFixed(1)}" fill="url(#barGrad)" rx="4"/>
       <text x="${(margin.left + barW + 8).toFixed(1)}" y="${(y + barH * 0.7).toFixed(1)}" font-size="12" font-family="Georgia, serif" font-weight="600" fill="${INK_COLOR}">${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}</text>
     `;
   }).join('');
@@ -344,7 +348,7 @@ export function hbarChart(items, options = {}) {
       <title>${title}</title>
       <defs>
         <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="${DEFAULT_COLOR}"/>
+          <stop offset="0%" stop-color="${GRAD_START}"/>
           <stop offset="100%" stop-color="${GRAD_END}"/>
         </linearGradient>
       </defs>

@@ -1,36 +1,97 @@
 import { SITE, HEADLINES, FACTS, SERIES, PROVINCES, ISLANDS, AGE, RELIGION, SOURCES } from './data.js';
 import * as charts from './charts.js';
 
+function getHeadlineAttr(h) {
+  const cleanVal = h.value.replace(/,/g, '');
+  const num = parseFloat(cleanVal);
+  const parts = cleanVal.split('.');
+  const decimals = parts.length > 1 ? parts[1].length : 0;
+  const hasComma = h.value.includes(',');
+  let attrs = `data-count="${num}" data-decimals="${decimals}"`;
+  if (hasComma) {
+    attrs += ` data-format="en"`;
+  }
+  return attrs;
+}
+
 export function viewOverview() {
+  const popH = HEADLINES.find(h => h.id === 'population');
+  const unempH = HEADLINES.find(h => h.id === 'unemployment');
+
   return `
     <div class="hero-band">
+      <p class="hero-eyebrow">Republic of Indonesia — Official Statistics</p>
       <h2>${SITE.tagline}</h2>
       <p>The essential statistics of the world's fourth most populous country, from official sources.</p>
     </div>
 
     <section class="view-section">
-      <div class="card-grid">
-        ${HEADLINES.map(h => `
-          <div class="stat-card" data-id="${h.id}">
-            <div>
-              <div class="stat-label">${h.label}</div>
-              <div class="stat-figure">${h.value} <span class="stat-unit">${h.unit}</span></div>
-              <div class="stat-note">${h.note}</div>
-            </div>
-            <div class="stat-source">Source: ${h.source}, ${h.year}</div>
+      <div class="bento-grid">
+        <div class="tile tile-pop" data-id="${popH.id}">
+          <div>
+            <div class="stat-label">Population</div>
+            <div class="mega-figure" ${getHeadlineAttr(popH)}>${popH.value} <span class="stat-unit">${popH.unit}</span></div>
+            <div class="mega-sub">${popH.note}</div>
           </div>
-        `).join('')}
+          <div style="border-top: 1px solid var(--hairline); margin-top: 1.25rem; padding-top: 1.25rem;">
+            <div class="stat-label">${unempH.label}</div>
+            <div class="stat-figure" ${getHeadlineAttr(unempH)}>${unempH.value} <span class="stat-unit">${unempH.unit}</span></div>
+            <div class="mega-sub">${unempH.note}</div>
+          </div>
+          <div class="stat-source" style="margin-top: 1rem;">Source: ${popH.source}, ${popH.year}</div>
+        </div>
+
+        <div class="tile tile-chart">
+          <div class="chart-meta">
+            <h3>${SERIES.population.title}</h3>
+            <span>Source: ${SERIES.population.source}</span>
+          </div>
+          <div class="chart-container">
+            ${charts.lineChart(SERIES.population.points, { title: SERIES.population.title, unit: SERIES.population.unit, decimals: 1 })}
+          </div>
+          <p class="footnote">${SERIES.population.note || ''}</p>
+        </div>
+
+        ${['gdp', 'gdp-growth', 'inflation', 'poverty'].map(id => {
+          const h = HEADLINES.find(item => item.id === id);
+          return `
+            <div class="tile tile-stat" data-id="${h.id}">
+              <div>
+                <div class="stat-label">${h.label}</div>
+                <div class="stat-figure" ${getHeadlineAttr(h)}>${h.value} <span class="stat-unit">${h.unit}</span></div>
+                <div class="stat-note">${h.note}</div>
+              </div>
+              <div class="stat-source">Source: ${h.source}, ${h.year}</div>
+            </div>
+          `;
+        }).join('')}
       </div>
 
-      <div class="chart-card">
+      <div class="tile tile-wide">
         <div class="chart-meta">
-          <h3>${SERIES.population.title}</h3>
-          <span>Source: ${SERIES.population.source}</span>
+          <h3>Population by Island Group</h3>
+          <span>Source: ${ISLANDS.source}</span>
         </div>
-        <div class="chart-container">
-          ${charts.lineChart(SERIES.population.points, { title: SERIES.population.title, unit: SERIES.population.unit, decimals: 1 })}
+        <p style="color: var(--muted); font-size: 0.95rem; margin-bottom: 1.25rem;">One dot &approx; 3 million people</p>
+        <div class="dotmap">
+          ${["Sumatra", "Java", "Kalimantan", "Sulawesi", "Bali and Nusa Tenggara", "Maluku and Papua"].map(name => {
+            const i = ISLANDS.items.find(item => item.name === name);
+            if (!i) return '';
+            const nDots = Math.round(i.population / 3);
+            const isInk = i.name === "Maluku and Papua";
+            return `
+              <div class="dot-cluster${isInk ? ' dot-ink' : ''}">
+                <div class="dots">
+                  ${Array.from({ length: nDots }, () => '<span class="dot"></span>').join('')}
+                </div>
+                <div class="cluster-label">
+                  ${i.name}
+                  <span class="figure">${i.population.toFixed(1)}M</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
-        <p class="footnote">${SERIES.population.note || ''}</p>
       </div>
 
       <div class="card-grid" style="grid-template-columns: 1fr 1fr; align-items: start;">
@@ -108,7 +169,7 @@ export function viewEconomy() {
           <div class="stat-card" data-id="${h.id}">
             <div>
               <div class="stat-label">${h.label}</div>
-              <div class="stat-figure">${h.value} <span class="stat-unit">${h.unit}</span></div>
+              <div class="stat-figure" ${getHeadlineAttr(h)}>${h.value} <span class="stat-unit">${h.unit}</span></div>
               <div class="stat-note">${h.note}</div>
             </div>
             <div class="stat-source">Source: ${h.source}, ${h.year}</div>
@@ -194,7 +255,7 @@ export function viewPeople() {
           <div class="stat-card" data-id="${h.id}">
             <div>
               <div class="stat-label">${h.label}</div>
-              <div class="stat-figure">${h.value} <span class="stat-unit">${h.unit}</span></div>
+              <div class="stat-figure" ${getHeadlineAttr(h)}>${h.value} <span class="stat-unit">${h.unit}</span></div>
               <div class="stat-note">${h.note}</div>
             </div>
             <div class="stat-source">Source: ${h.source}, ${h.year}</div>
