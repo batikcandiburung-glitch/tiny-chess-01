@@ -83,9 +83,10 @@ let scrollDirection = 'down';
 let lastScrollPos = window.scrollY || 0;
 window.addEventListener('scroll', () => {
   const y = window.scrollY || 0;
-  if (y > lastScrollPos + 2) scrollDirection = 'down';
-  else if (y < lastScrollPos - 2) scrollDirection = 'up';
-  lastScrollPos = y;
+  // The reference position only moves once the threshold is crossed, so
+  // small smooth-scroll steps accumulate instead of never registering.
+  if (y > lastScrollPos + 4) { scrollDirection = 'down'; lastScrollPos = y; }
+  else if (y < lastScrollPos - 4) { scrollDirection = 'up'; lastScrollPos = y; }
 }, { passive: true });
 
 const animsByTarget = new Map();
