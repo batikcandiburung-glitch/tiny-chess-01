@@ -2,6 +2,53 @@ import * as views from './views.js';
 import { SERIES, PROVINCES } from './data.js';
 import * as charts from './charts.js';
 
+// Module scope setup
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const gsap = window.gsap;
+const ScrollTrigger = window.ScrollTrigger;
+const Lenis = window.Lenis;
+
+if (gsap && ScrollTrigger) {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+let lenis = null;
+if (Lenis && !reducedMotion) {
+  lenis = new Lenis({
+    duration: 1.1,
+    smoothWheel: true
+  });
+
+  if (gsap) {
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+    gsap.ticker.lagSmoothing(0);
+  } else {
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }
+}
+
+// Inject skeleton styles if not present
+const skeletonStyleId = 'angka-skeleton-style';
+if (!document.getElementById(skeletonStyleId)) {
+  const styleEl = document.createElement('style');
+  styleEl.id = skeletonStyleId;
+  styleEl.textContent = `
+    .skeleton { display: flex; flex-direction: column; gap: 2.5rem; width: 100%; }
+    .skel-hero { height: 220px; background: linear-gradient(90deg, #E3E8F0 25%, #EEF2F7 50%, #E3E8F0 75%); background-size: 200% 100%; animation: skel-pulse 1.5s infinite; border-radius: 24px; }
+    .skel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .skel-card { height: 160px; background: linear-gradient(90deg, #E3E8F0 25%, #EEF2F7 50%, #E3E8F0 75%); background-size: 200% 100%; animation: skel-pulse 1.5s infinite; border-radius: 18px; }
+    @keyframes skel-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  `;
+  document.head.appendChild(styleEl);
+}
+
 const routes = {
   '/': views.viewOverview,
   '/economy': views.viewEconomy,
@@ -11,33 +58,97 @@ const routes = {
   '/sources': views.viewSources
 };
 
+let renderToken = 0;
+
 function renderRoute() {
+  const currentToken = ++renderToken;
   const hash = window.location.hash || '#/';
   const routePath = hash.replace('#', '') || '/';
   const renderFunc = routes[routePath] || views.viewOverview;
 
   const appEl = document.getElementById('app');
-  if (appEl) {
+  if (!appEl) return;
+
+  const executeRender = () => {
+    if (currentToken !== renderToken) return;
+
     appEl.innerHTML = renderFunc();
-  }
 
-  // Update active nav link
-  document.querySelectorAll('.nav-link').forEach(link => {
-    const route = link.getAttribute('data-route');
-    if (route === routePath || (route === '/' && routePath === '/')) {
-      link.classList.add('active');
+    // Update active nav link
+    document.querySelectorAll('.nav-link').forEach(link => {
+      const route = link.getAttribute('data-route');
+      if (route === routePath || (route === '/' && routePath === '/')) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
     } else {
-      link.classList.remove('active');
+      window.scrollTo(0, 0);
     }
-  });
 
-  window.scrollTo(0, 0);
+    // Post-render page-specific wiring
+    if (routePath === '/economy') {
+      initEconomyExplorer();
+    } else if (routePath === '/provinces') {
+      initProvinceSorting();
+    }
 
-  // Post-render page-specific wiring
-  if (routePath === '/economy') {
-    initEconomyExplorer();
-  } else if (routePath === '/provinces') {
-    initProvinceSorting();
+    // Entrance and scroll animations
+    if (!reducedMotion && gsap && ScrollTrigger) {
+      ScrollTrigger.getAll().forEach(t => t.kill());
+
+      const elements = appEl.querySelectorAll('.hero-band, .stat-card, .chart-card, .table-card, .section-header');
+      elements.forEach(el => {
+        const parent = el.parentNode;
+        const siblings = parent ? Array.from(parent.children) : [];
+        const index = siblings.indexOf(el);
+        const delay = Math.min(index * 0.05, 0.3);
+
+        gsap.from(el, {
+          opacity: 0,
+          y: 16,
+          duration: 0.55,
+          ease: 'power2.out',
+          delay: delay,
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 92%',
+            toggleActions: 'play none none none',
+            once: true
+          }
+        });
+      });
+
+      ScrollTrigger.refresh();
+    }
+  };
+
+  if (reducedMotion) {
+    executeRender();
+  } else {
+    appEl.innerHTML = `
+      <div class="skeleton">
+        <div class="skel-hero"></div>
+        <div class="skel-grid">
+          <div class="skel-card"></div>
+          <div class="skel-card"></div>
+          <div class="skel-card"></div>
+          <div class="skel-card"></div>
+          <div class="skel-card"></div>
+          <div class="skel-card"></div>
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      if (currentToken === renderToken) {
+        executeRender();
+      }
+    }, 450);
   }
 }
 
@@ -202,7 +313,7 @@ function initProvinceSorting() {
         provinceSortAsc = !provinceSortAsc;
       } else {
         provinceSortCol = col;
-        provinceSortAsc = false; // default to descending for stats/population, or toggle
+        provinceSortAsc = false;
       }
 
       headers.forEach(h => {

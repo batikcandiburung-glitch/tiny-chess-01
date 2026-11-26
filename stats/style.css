@@ -113,13 +113,14 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
   text-decoration: none;
   font-weight: 500;
   font-size: 0.9rem;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .site-nav .nav-link:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #FFFFFF;
   text-decoration: none;
+  transform: translateX(3px);
 }
 
 .site-nav .nav-link.active {
@@ -208,6 +209,10 @@ section.view-section {
   gap: 1.5rem;
 }
 
+.stat-card, .chart-card, .table-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
 .stat-card {
   background-color: var(--surface);
   border: 1px solid var(--border);
@@ -219,11 +224,10 @@ section.view-section {
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.stat-card:hover {
-  transform: translateY(-2px);
+.stat-card:hover, .chart-card:hover, .table-card:hover {
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
 }
 
@@ -318,6 +322,14 @@ section.view-section {
   display: block;
 }
 
+.chart-container rect {
+  transition: opacity 0.2s ease;
+}
+
+.chart-container rect:hover {
+  opacity: 0.82;
+}
+
 /* Tables & Table Cards */
 .table-card {
   background-color: var(--surface);
@@ -352,6 +364,7 @@ table {
 th, td {
   padding: 0.7rem 0.9rem;
   border-bottom: 1px solid var(--border);
+  transition: background-color 0.15s ease;
 }
 
 th {
@@ -391,12 +404,22 @@ select, button {
   background-color: var(--surface);
   color: var(--text);
   font-weight: 500;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
-select:hover, button:hover {
+select:hover {
   border-color: var(--primary);
   cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--primary);
+  cursor: pointer;
+  transform: scale(1.03);
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 button#series-csv {
@@ -411,6 +434,11 @@ button#series-csv {
 button#series-csv:hover {
   background-color: var(--primary-hover);
   border-color: var(--primary-hover);
+  transform: scale(1.03);
+}
+
+button#series-csv:active {
+  transform: scale(0.98);
 }
 
 .filter-input {
@@ -430,6 +458,59 @@ button#series-csv:hover {
 .filter-input:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* Skeleton Loading Styles */
+.skeleton {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 36px 40px 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.skel-hero {
+  height: 190px;
+  border-radius: 24px;
+  width: 100%;
+  background-color: #E7ECF3;
+  background-image: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.65) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+.skel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.skel-card {
+  height: 150px;
+  border-radius: 18px;
+  width: 100%;
+  background-color: #E7ECF3;
+  background-image: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.65) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 180% 0;
+  }
+  100% {
+    background-position: -80% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel-hero, .skel-card {
+    animation: none;
+  }
 }
 
 /* Source List & Footnotes */
@@ -538,7 +619,7 @@ button#series-csv:hover {
     display: none;
   }
 
-  #app, .main-content {
+  #app, .main-content, .skeleton {
     padding: 22px 16px 4px;
   }
 

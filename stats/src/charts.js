@@ -21,7 +21,7 @@ export function lineChart(points, options = {}) {
 
   if (!points || points.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
-  const margin = { top: 35, right: 60, bottom: 40, left: 68 };
+  const margin = { top: 35, right: 60, bottom: 40, left: 118 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -74,9 +74,14 @@ export function lineChart(points, options = {}) {
     return `<text x="${x.toFixed(1)}" y="${height - 12}" text-anchor="middle" font-size="11" fill="${MUTE_COLOR}">${p.year}</text>`;
   }).join('');
 
-  // Y-axis min/max labels (right-aligned, ending before plot area)
-  const yMaxLabel = `<text x="${margin.left - 10}" y="${margin.top + 5}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${maxVal.toFixed(decimals)} ${unit}</text>`;
-  const yMinLabel = `<text x="${margin.left - 10}" y="${margin.top + chartHeight + 4}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${minVal.toFixed(decimals)} ${unit}</text>`;
+  // Y-axis min/max labels and unit text
+  const isShortUnit = unit === "percent" || unit === "%";
+  const maxLabelText = isShortUnit ? `${maxVal.toFixed(decimals)} ${unit}` : maxVal.toFixed(decimals);
+  const minLabelText = isShortUnit ? `${minVal.toFixed(decimals)} ${unit}` : minVal.toFixed(decimals);
+
+  const yMaxLabel = `<text x="${margin.left - 10}" y="${margin.top + 5}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${maxLabelText}</text>`;
+  const yMinLabel = `<text x="${margin.left - 10}" y="${margin.top + chartHeight + 4}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${minLabelText}</text>`;
+  const unitLabel = (!isShortUnit && unit) ? `<text x="${margin.left}" y="${margin.top + 5}" text-anchor="start" font-size="11" fill="${MUTE_COLOR}">${unit}</text>` : '';
 
   // Dots and last point value callout
   const dots = coords.map((c, i) => {
@@ -105,6 +110,7 @@ export function lineChart(points, options = {}) {
       <!-- Axis Labels -->
       ${yMaxLabel}
       ${yMinLabel}
+      ${unitLabel}
       ${xLabels}
 
       <!-- Area Fill -->
@@ -135,7 +141,7 @@ export function tradeChart(subSeries, options = {}) {
 
   if (points.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
-  const margin = { top: 45, right: 70, bottom: 40, left: 68 };
+  const margin = { top: 45, right: 70, bottom: 40, left: 118 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -181,8 +187,13 @@ export function tradeChart(subSeries, options = {}) {
     return '';
   }).join('');
 
-  const yMaxLabel = `<text x="${margin.left - 10}" y="${margin.top + 5}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${maxVal.toFixed(decimals)} ${unit}</text>`;
-  const yMinLabel = `<text x="${margin.left - 10}" y="${margin.top + chartHeight + 4}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${minVal.toFixed(decimals)} ${unit}</text>`;
+  const isShortUnit = unit === "percent" || unit === "%";
+  const maxLabelText = isShortUnit ? `${maxVal.toFixed(decimals)} ${unit}` : maxVal.toFixed(decimals);
+  const minLabelText = isShortUnit ? `${minVal.toFixed(decimals)} ${unit}` : minVal.toFixed(decimals);
+
+  const yMaxLabel = `<text x="${margin.left - 10}" y="${margin.top + 5}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${maxLabelText}</text>`;
+  const yMinLabel = `<text x="${margin.left - 10}" y="${margin.top + chartHeight + 4}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}">${minLabelText}</text>`;
+  const unitLabel = (!isShortUnit && unit) ? `<text x="${margin.left}" y="${margin.top + 5}" text-anchor="start" font-size="11" fill="${MUTE_COLOR}">${unit}</text>` : '';
 
   const expDots = expCoords.map((c, i) => {
     const isLast = i === expCoords.length - 1;
@@ -214,6 +225,7 @@ export function tradeChart(subSeries, options = {}) {
       
       ${yMaxLabel}
       ${yMinLabel}
+      ${unitLabel}
       ${xLabels}
 
       <!-- Legend -->
