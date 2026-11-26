@@ -621,10 +621,14 @@ function syncSettingsUI() {
   });
 }
 
+let settingsInitDone = false;
+
 function initSettings() {
+  if (settingsInitDone) return;
   const panel = document.getElementById('settings-panel');
   const openBtn = document.getElementById('settings-open');
   if (!panel || !openBtn) return;
+  settingsInitDone = true;
 
   openBtn.addEventListener('click', () => {
     const willOpen = panel.hidden;
