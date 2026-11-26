@@ -3,7 +3,7 @@ import { SERIES, PROVINCES } from './data.js';
 import * as charts from './charts.js';
 import { getSettings, setSetting, applySettings } from './settings.js';
 import { t, pick, unit, numLocale } from './i18n.js';
-import { animate, stagger, onScroll, createDrawable } from '../vendor/anime.esm.min.js';
+import { animate, stagger, createDrawable } from '../vendor/anime.esm.min.js';
 
 // Module scope setup
 applySettings();
@@ -75,6 +75,36 @@ const routes = {
 let renderToken = 0;
 let activeAnimations = [];
 
+// Scroll animations replay every time their target comes back into view:
+// Anime's onScroll play fires only once, so an IntersectionObserver
+// restarts each registered animation on every viewport entry.
+const animsByTarget = new Map();
+const replayObserver = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const anims = animsByTarget.get(entry.target);
+    if (!anims) return;
+    anims.forEach(a => { try { a.restart(); } catch (e) {} });
+  });
+}, { threshold: 0.1 }) : null;
+
+function registerAnim(anim, targetEl) {
+  if (!anim) return;
+  activeAnimations.push(anim);
+  try { anim.pause(); } catch (e) {}
+  if (!replayObserver || !targetEl) return;
+  if (!animsByTarget.has(targetEl)) {
+    animsByTarget.set(targetEl, []);
+    replayObserver.observe(targetEl);
+  }
+  animsByTarget.get(targetEl).push(anim);
+}
+
+function clearAnimRegistry() {
+  if (replayObserver) replayObserver.disconnect();
+  animsByTarget.clear();
+}
+
 // --- Chart tooltip (delegated, one element for the whole app) ---
 let chartTipEl = null;
 function hideChartTip() {
@@ -140,6 +170,7 @@ function renderRoute() {
     }
   });
   activeAnimations = [];
+  clearAnimRegistry();
 
   const executeRender = () => {
     if (currentToken !== renderToken) return;
@@ -193,10 +224,10 @@ function renderRoute() {
             duration: 550,
             ease: 'outQuad',
             delay: delay,
-            autoplay: onScroll({ play: true })
+            autoplay: false
           });
           if (anim) {
-            activeAnimations.push(anim);
+            registerAnim(anim, el);
           }
         });
 
@@ -247,9 +278,9 @@ function initAnimeWiring() {
               draw: ['0 0', '0 1'],
               duration: 900,
               ease: 'outExpo',
-              autoplay: onScroll({ play: true })
+              autoplay: false
             });
-            if (anim) activeAnimations.push(anim);
+            if (anim) registerAnim(anim, el);
           });
         }
       } catch (err) {}
@@ -263,9 +294,9 @@ function initAnimeWiring() {
         const anim = animate(el, {
           opacity: [0, 1],
           duration: 600,
-          autoplay: onScroll({ play: true })
+          autoplay: false
         });
-        if (anim) activeAnimations.push(anim);
+        if (anim) registerAnim(anim, el);
       } catch (err) {}
     });
   } catch (e) {}
@@ -280,9 +311,9 @@ function initAnimeWiring() {
           duration: 500,
           ease: 'outBack',
           delay: 500,
-          autoplay: onScroll({ play: true })
+          autoplay: false
         });
-        if (anim) activeAnimations.push(anim);
+        if (anim) registerAnim(anim, el);
       } catch (err) {}
     });
   } catch (e) {}
@@ -309,9 +340,9 @@ function initAnimeWiring() {
         transformOrigin: '0% 50%',
         duration: 700,
         delay: stagger(40),
-        autoplay: onScroll({ play: true })
+        autoplay: false
       });
-      if (anim) activeAnimations.push(anim);
+      if (anim) registerAnim(anim, horizBars[0].closest('.chart-card') || horizBars[0]);
     }
     if (vertBars.length > 0) {
       const anim = animate(vertBars, {
@@ -319,9 +350,9 @@ function initAnimeWiring() {
         transformOrigin: '50% 100%',
         duration: 700,
         delay: stagger(40),
-        autoplay: onScroll({ play: true })
+        autoplay: false
       });
-      if (anim) activeAnimations.push(anim);
+      if (anim) registerAnim(anim, vertBars[0].closest('.chart-card') || vertBars[0]);
     }
   } catch (e) {}
 
@@ -352,7 +383,7 @@ function initAnimeWiring() {
           v: target,
           duration: 900,
           ease: 'outExpo',
-          autoplay: onScroll({ play: true }),
+          autoplay: false,
           onUpdate: () => {
             try {
               el.textContent = formatVal(o.v);
@@ -360,7 +391,7 @@ function initAnimeWiring() {
           }
         });
         if (anim) {
-          activeAnimations.push(anim);
+          registerAnim(anim, el);
         }
       } catch (err) {
         if (finalFormatted) {
@@ -380,10 +411,10 @@ function initAnimeWiring() {
         duration: 500,
         ease: 'outBack',
         delay: stagger(12),
-        autoplay: onScroll({ play: true })
+        autoplay: false
       });
       if (anim) {
-        activeAnimations.push(anim);
+        registerAnim(anim, dotEls[0].closest('.tile') || dotEls[0]);
       }
     }
   } catch (e) {}
