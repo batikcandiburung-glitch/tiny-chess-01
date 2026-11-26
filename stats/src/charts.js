@@ -302,7 +302,7 @@ export function barChart(items, options = {}) {
     const y = getY(item.value);
     const h = margin.top + chartHeight - y;
     return `
-      <rect class="grow-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="url(#barGrad)" rx="4" data-tip="${item.label} — ${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}"/>
+      <rect class="grow-bar" data-orient="v" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="url(#barGrad)" rx="4" data-tip="${item.label} — ${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}"/>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle" font-size="10" fill="${INK_COLOR}" font-weight="600">${item.value.toFixed(decimals)}</text>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${(margin.top + chartHeight + 16).toFixed(1)}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}" transform="rotate(-35, ${(x + barWidth / 2).toFixed(1)}, ${(margin.top + chartHeight + 16).toFixed(1)})">${item.label}</text>
     `;
@@ -352,7 +352,7 @@ export function hbarChart(items, options = {}) {
 
     return `
       <text x="182" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="end" font-size="12" fill="${INK_COLOR}" font-weight="500">${item.label}</text>
-      <rect class="grow-bar" x="${margin.left}" y="${y.toFixed(1)}" width="${Math.max(barW, 2).toFixed(1)}" height="${barH.toFixed(1)}" fill="url(#barGrad)" rx="4"/>
+      <rect class="grow-bar" data-orient="h" x="${margin.left}" y="${y.toFixed(1)}" width="${Math.max(barW, 2).toFixed(1)}" height="${barH.toFixed(1)}" fill="url(#barGrad)" rx="4"/>
       <text x="${(margin.left + barW + 8).toFixed(1)}" y="${(y + barH * 0.7).toFixed(1)}" font-size="12" font-family="Georgia, serif" font-weight="600" fill="${INK_COLOR}">${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}</text>
     `;
   }).join('');

@@ -266,15 +266,12 @@ function initAnimeWiring() {
     const horizBars = [];
     const vertBars = [];
     barEls.forEach(el => {
-      try {
-        const w = parseFloat(el.getAttribute('width') || el.width || el.clientWidth || el.getBoundingClientRect().width || 0);
-        const h = parseFloat(el.getAttribute('height') || el.height || el.clientHeight || el.getBoundingClientRect().height || 0);
-        if (w > h) {
-          horizBars.push(el);
-        } else {
-          vertBars.push(el);
-        }
-      } catch (err) {
+      // Orientation comes from the chart builder (data-orient), never from
+      // the rect's aspect ratio: a short vertical bar is wider than tall
+      // and was misclassified as horizontal (grew left-to-right).
+      if (el.getAttribute('data-orient') === 'h') {
+        horizBars.push(el);
+      } else {
         vertBars.push(el);
       }
     });
