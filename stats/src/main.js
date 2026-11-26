@@ -1,16 +1,11 @@
 import * as views from './views.js';
 import { SERIES, PROVINCES } from './data.js';
 import * as charts from './charts.js';
+import { animate, stagger, onScroll, createDrawable } from '../vendor/anime.esm.min.js';
 
 // Module scope setup
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const gsap = window.gsap;
-const ScrollTrigger = window.ScrollTrigger;
 const Lenis = window.Lenis;
-
-if (gsap && ScrollTrigger) {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 let lenis = null;
 if (Lenis && !reducedMotion) {
@@ -19,19 +14,11 @@ if (Lenis && !reducedMotion) {
     smoothWheel: true
   });
 
-  if (gsap) {
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-    gsap.ticker.lagSmoothing(0);
-  } else {
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+  function raf(time) {
+    lenis.raf(time);
     requestAnimationFrame(raf);
   }
+  requestAnimationFrame(raf);
 }
 
 // Inject skeleton styles if not present
@@ -59,6 +46,7 @@ const routes = {
 };
 
 let renderToken = 0;
+let activeAnimations = [];
 
 function renderRoute() {
   const currentToken = ++renderToken;
@@ -68,6 +56,14 @@ function renderRoute() {
 
   const appEl = document.getElementById('app');
   if (!appEl) return;
+
+  // Revert previous animations at the start of next route render
+  activeAnimations.forEach(anim => {
+    if (anim && typeof anim.revert === 'function') {
+      anim.revert();
+    }
+  });
+  activeAnimations = [];
 
   const executeRender = () => {
     if (currentToken !== renderToken) return;
@@ -90,40 +86,40 @@ function renderRoute() {
       window.scrollTo(0, 0);
     }
 
-    // Post-render page-specific wiring
-    if (routePath === '/economy') {
-      initEconomyExplorer();
-    } else if (routePath === '/provinces') {
-      initProvinceSorting();
-    }
+    try {
+      // Post-render page-specific wiring
+      if (routePath === '/economy') {
+        initEconomyExplorer();
+      } else if (routePath === '/provinces') {
+        initProvinceSorting();
+      }
 
-    // Entrance and scroll animations
-    if (!reducedMotion && gsap && ScrollTrigger) {
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      // Entrance and scroll animations
+      if (!reducedMotion) {
+        const elements = appEl.querySelectorAll('.hero-band, .tile, .stat-card, .chart-card, .table-card, .section-header');
+        elements.forEach(el => {
+          const parent = el.parentNode;
+          const siblings = parent ? Array.from(parent.children) : [];
+          const index = siblings.indexOf(el);
+          const delay = Math.min(index * 50, 300);
 
-      const elements = appEl.querySelectorAll('.hero-band, .stat-card, .chart-card, .table-card, .section-header');
-      elements.forEach(el => {
-        const parent = el.parentNode;
-        const siblings = parent ? Array.from(parent.children) : [];
-        const index = siblings.indexOf(el);
-        const delay = Math.min(index * 0.05, 0.3);
-
-        gsap.from(el, {
-          opacity: 0,
-          y: 16,
-          duration: 0.55,
-          ease: 'power2.out',
-          delay: delay,
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 92%',
-            toggleActions: 'play none none none',
-            once: true
+          const anim = animate(el, {
+            opacity: [0, 1],
+            translateY: [16, 0],
+            duration: 550,
+            ease: 'outQuad',
+            delay: delay,
+            autoplay: onScroll({ play: true })
+          });
+          if (anim) {
+            activeAnimations.push(anim);
           }
         });
-      });
 
-      ScrollTrigger.refresh();
+        initAnimeWiring();
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -150,6 +146,166 @@ function renderRoute() {
       }
     }, 450);
   }
+}
+
+function initAnimeWiring() {
+  const appEl = document.getElementById('app');
+  if (!appEl) return;
+
+  // 1. Line drawing
+  try {
+    appEl.querySelectorAll('.draw-line').forEach(el => {
+      try {
+        const drawables = createDrawable(el);
+        if (drawables) {
+          drawables.forEach(proxy => {
+            const anim = animate(proxy, {
+              draw: ['0 0', '0 1'],
+              duration: 900,
+              ease: 'outExpo',
+              autoplay: onScroll({ play: true })
+            });
+            if (anim) activeAnimations.push(anim);
+          });
+        }
+      } catch (err) {}
+    });
+  } catch (e) {}
+
+  // 2. Area fills
+  try {
+    appEl.querySelectorAll('.fade-area').forEach(el => {
+      try {
+        const anim = animate(el, {
+          opacity: [0, 1],
+          duration: 600,
+          autoplay: onScroll({ play: true })
+        });
+        if (anim) activeAnimations.push(anim);
+      } catch (err) {}
+    });
+  } catch (e) {}
+
+  // 3. End dots
+  try {
+    appEl.querySelectorAll('.pop-dot').forEach(el => {
+      try {
+        const anim = animate(el, {
+          scale: [0, 1],
+          transformOrigin: '50% 50%',
+          duration: 500,
+          ease: 'outBack',
+          delay: 500,
+          autoplay: onScroll({ play: true })
+        });
+        if (anim) activeAnimations.push(anim);
+      } catch (err) {}
+    });
+  } catch (e) {}
+
+  // 4. Bars
+  try {
+    const barEls = Array.from(appEl.querySelectorAll('.grow-bar'));
+    const horizBars = [];
+    const vertBars = [];
+    barEls.forEach(el => {
+      try {
+        const w = parseFloat(el.getAttribute('width') || el.width || el.clientWidth || el.getBoundingClientRect().width || 0);
+        const h = parseFloat(el.getAttribute('height') || el.height || el.clientHeight || el.getBoundingClientRect().height || 0);
+        if (w > h) {
+          horizBars.push(el);
+        } else {
+          vertBars.push(el);
+        }
+      } catch (err) {
+        vertBars.push(el);
+      }
+    });
+
+    if (horizBars.length > 0) {
+      const anim = animate(horizBars, {
+        scaleX: [0, 1],
+        transformOrigin: '0% 50%',
+        duration: 700,
+        delay: stagger(40),
+        autoplay: onScroll({ play: true })
+      });
+      if (anim) activeAnimations.push(anim);
+    }
+    if (vertBars.length > 0) {
+      const anim = animate(vertBars, {
+        scaleY: [0, 1],
+        transformOrigin: '50% 100%',
+        duration: 700,
+        delay: stagger(40),
+        autoplay: onScroll({ play: true })
+      });
+      if (anim) activeAnimations.push(anim);
+    }
+  } catch (e) {}
+
+  // 5. Count-ups
+  try {
+    appEl.querySelectorAll('[data-count]').forEach(el => {
+      let finalFormatted = '';
+      try {
+        const target = parseFloat(el.getAttribute('data-count'));
+        if (isNaN(target)) return;
+        const decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+        const isEn = el.getAttribute('data-format') === 'en';
+
+        const formatVal = (v) => {
+          if (isEn) {
+            return v.toLocaleString('en-US', {
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals
+            });
+          }
+          return v.toFixed(decimals);
+        };
+
+        finalFormatted = formatVal(target);
+
+        const o = { v: 0 };
+        const anim = animate(o, {
+          v: target,
+          duration: 900,
+          ease: 'outExpo',
+          autoplay: onScroll({ play: true }),
+          onUpdate: () => {
+            try {
+              el.textContent = formatVal(o.v);
+            } catch (err) {}
+          }
+        });
+        if (anim) {
+          activeAnimations.push(anim);
+        }
+      } catch (err) {
+        if (finalFormatted) {
+          try { el.textContent = finalFormatted; } catch (e2) {}
+        }
+      }
+    });
+  } catch (e) {}
+
+  // 6. Pictogram dots
+  try {
+    const dotEls = appEl.querySelectorAll('.dot');
+    if (dotEls.length > 0) {
+      const anim = animate(dotEls, {
+        scale: [0, 1],
+        transformOrigin: '50% 50%',
+        duration: 500,
+        ease: 'outBack',
+        delay: stagger(12),
+        autoplay: onScroll({ play: true })
+      });
+      if (anim) {
+        activeAnimations.push(anim);
+      }
+    }
+  } catch (e) {}
 }
 
 function initEconomyExplorer() {
