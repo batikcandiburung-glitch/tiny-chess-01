@@ -359,7 +359,7 @@ function initAnimeWiring() {
         delay: stagger(40),
         autoplay: false
       });
-      if (anim) registerAnim(anim, horizBars[0].closest('.chart-card') || horizBars[0]);
+      if (anim) registerAnim(anim, horizBars[0].closest('.chart-card, .card, .tile') || horizBars[0]);
     }
     if (vertBars.length > 0) {
       const anim = animate(vertBars, {
@@ -369,7 +369,7 @@ function initAnimeWiring() {
         delay: stagger(40),
         autoplay: false
       });
-      if (anim) registerAnim(anim, vertBars[0].closest('.chart-card') || vertBars[0]);
+      if (anim) registerAnim(anim, vertBars[0].closest('.chart-card, .card, .tile') || vertBars[0]);
     }
   } catch (e) {}
 
