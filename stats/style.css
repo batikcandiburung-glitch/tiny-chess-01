@@ -31,7 +31,7 @@ html[data-theme="dark"] {
   --canvas: #0B0E17;
   --surface: #141927;
   --ink: #EDF0F7;
-  --muted: #9AA3B5;
+  --muted: #A8B1C6;
   --hairline: #262C44;
   --primary: #E8352C;
   --accent: #E8352C;
@@ -193,7 +193,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 
 .site-nav .nav-link.active {
   background: var(--ink);
-  color: #FFFFFF;
+  color: var(--canvas);
   font-weight: 600;
 }
 
@@ -686,7 +686,7 @@ button:active {
 
 button#series-csv {
   background-color: var(--ink);
-  color: #FFFFFF;
+  color: var(--canvas);
   border: 1px solid var(--ink);
   border-radius: 999px;
   font-weight: 600;
@@ -694,8 +694,9 @@ button#series-csv {
 }
 
 button#series-csv:hover {
-  background-color: #1F293D;
-  border-color: #1F293D;
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
   transform: scale(1.03);
 }
 
