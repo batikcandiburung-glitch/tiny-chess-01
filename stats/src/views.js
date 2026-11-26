@@ -1,4 +1,5 @@
 import { SITE, HEADLINES, FACTS, SERIES, PROVINCES, ISLANDS, AGE, RELIGION, SOURCES } from './data.js';
+import { t, pick, unit, numLocale } from './i18n.js';
 import * as charts from './charts.js';
 
 function getHeadlineAttr(h) {
@@ -20,36 +21,36 @@ export function viewOverview() {
 
   return `
     <div class="hero-band">
-      <p class="hero-eyebrow">Republic of Indonesia — Official Statistics</p>
-      <h2>${SITE.tagline}</h2>
-      <p>The essential statistics of the world's fourth most populous country, from official sources.</p>
+      <p class="hero-eyebrow">${t('hero_eyebrow')}</p>
+      <h2>${t('tagline')}</h2>
+      <p>${t('hero_sub')}</p>
     </div>
 
     <section class="view-section">
       <div class="bento-grid">
         <div class="tile tile-pop" data-id="${popH.id}">
           <div>
-            <div class="stat-label">Population</div>
-            <div class="mega-figure" ${getHeadlineAttr(popH)}>${popH.value} <span class="stat-unit">${popH.unit}</span></div>
-            <div class="mega-sub">${popH.note}</div>
+            <div class="stat-label">${pick(popH, 'label')}</div>
+            <div class="mega-figure" ${getHeadlineAttr(popH)}>${pick(popH, 'value')} <span class="stat-unit">${unit(popH.unit)}</span></div>
+            <div class="mega-sub">${pick(popH, 'note')}</div>
           </div>
           <div style="border-top: 1px solid var(--hairline); margin-top: 1.25rem; padding-top: 1.25rem;">
-            <div class="stat-label">${unempH.label}</div>
-            <div class="stat-figure" ${getHeadlineAttr(unempH)}>${unempH.value} <span class="stat-unit">${unempH.unit}</span></div>
-            <div class="mega-sub">${unempH.note}</div>
+            <div class="stat-label">${pick(unempH, 'label')}</div>
+            <div class="stat-figure" ${getHeadlineAttr(unempH)}>${pick(unempH, 'value')} <span class="stat-unit">${unempH.unit}</span></div>
+            <div class="mega-sub">${pick(unempH, 'note')}</div>
           </div>
-          <div class="stat-source" style="margin-top: 1rem;">Source: ${popH.source}, ${popH.year}</div>
+          <div class="stat-source" style="margin-top: 1rem;">${t('source')}: ${popH.source}, ${popH.year}</div>
         </div>
 
         <div class="tile tile-chart">
           <div class="chart-meta">
-            <h3>${SERIES.population.title}</h3>
-            <span>Source: ${SERIES.population.source}</span>
+            <h3>${pick(SERIES.population, 'title')}</h3>
+            <span>${t('source')}: ${SERIES.population.source}</span>
           </div>
           <div class="chart-container">
-            ${charts.lineChart(SERIES.population.points, { title: SERIES.population.title, unit: SERIES.population.unit, decimals: 1 })}
+            ${charts.lineChart(SERIES.population.points, { title: pick(SERIES.population, 'title'), unit: unit(SERIES.population.unit), decimals: 1 })}
           </div>
-          <p class="footnote">${SERIES.population.note || ''}</p>
+          <p class="footnote">${pick(SERIES.population, 'note') || ''}</p>
         </div>
 
         ${['gdp', 'gdp-growth', 'inflation', 'poverty'].map(id => {
@@ -57,11 +58,11 @@ export function viewOverview() {
           return `
             <div class="tile tile-stat" data-id="${h.id}">
               <div>
-                <div class="stat-label">${h.label}</div>
-                <div class="stat-figure" ${getHeadlineAttr(h)}>${h.value} <span class="stat-unit">${h.unit}</span></div>
-                <div class="stat-note">${h.note}</div>
+                <div class="stat-label">${pick(h, 'label')}</div>
+                <div class="stat-figure" ${getHeadlineAttr(h)}>${pick(h, 'value')} <span class="stat-unit">${unit(h.unit)}</span></div>
+                <div class="stat-note">${pick(h, 'note')}</div>
               </div>
-              <div class="stat-source">Source: ${h.source}, ${h.year}</div>
+              <div class="stat-source">${t('source')}: ${h.source}, ${h.year}</div>
             </div>
           `;
         }).join('')}
@@ -69,10 +70,10 @@ export function viewOverview() {
 
       <div class="tile tile-wide">
         <div class="chart-meta">
-          <h3>Population by Island Group</h3>
-          <span>Source: ${ISLANDS.source}</span>
+          <h3>${t('pop_by_island')}</h3>
+          <span>${t('source')}: ${ISLANDS.source}</span>
         </div>
-        <p style="color: var(--muted); font-size: 0.95rem; margin-bottom: 1.25rem;">One dot &approx; 3 million people</p>
+        <p style="color: var(--muted); font-size: 0.95rem; margin-bottom: 1.25rem;">${t('one_dot')}</p>
         <div class="dotmap">
           ${["Sumatra", "Java", "Kalimantan", "Sulawesi", "Bali and Nusa Tenggara", "Maluku and Papua"].map(name => {
             const i = ISLANDS.items.find(item => item.name === name);
@@ -85,8 +86,8 @@ export function viewOverview() {
                   ${Array.from({ length: nDots }, () => '<span class="dot"></span>').join('')}
                 </div>
                 <div class="cluster-label">
-                  ${i.name}
-                  <span class="figure">${i.population.toFixed(1)}M</span>
+                  ${pick(i, 'name')}
+                  <span class="figure">${i.population.toFixed(1)}${t('million_suffix')}</span>
                 </div>
               </div>
             `;
@@ -96,13 +97,13 @@ export function viewOverview() {
 
       <div class="card-grid split-grid">
         <div class="table-card">
-          <h3>Country Facts</h3>
+          <h3>${t('country_facts')}</h3>
           <div class="table-responsive">
             <dl class="facts-list">
               ${FACTS.map(f => `
                 <div>
-                  <dt>${f.label}</dt>
-                  <dd>${f.value} <span class="fact-src">(${f.source}, ${f.year})</span></dd>
+                  <dt>${pick(f, 'label')}</dt>
+                  <dd>${pick(f, 'value')} <span class="fact-src">(${pick(f, 'source')}, ${f.year})</span></dd>
                 </div>
               `).join('')}
             </dl>
@@ -110,12 +111,12 @@ export function viewOverview() {
         </div>
 
         <div class="chart-card" style="margin-bottom: 0;">
-          <h3>Religious Composition</h3>
+          <h3>${t('religious_comp')}</h3>
           <div class="chart-meta">
-            <span>Source: ${RELIGION.source}</span>
+            <span>${t('source')}: ${RELIGION.source}</span>
           </div>
           <div class="chart-container">
-            ${charts.hbarChart(RELIGION.items.map(r => ({ label: r.name, value: r.percent })), { title: "Religion shares", unit: "%", decimals: 2, height: 320 })}
+            ${charts.hbarChart(RELIGION.items.map(r => ({ label: pick(r, 'name'), value: r.percent })), { title: t('religion_shares'), unit: "%", decimals: 2, height: 320 })}
           </div>
         </div>
       </div>
@@ -123,27 +124,27 @@ export function viewOverview() {
       <div class="card-grid">
         <a href="#/economy" class="stat-card" style="text-decoration: none;">
           <div>
-            <div class="stat-label">Explore Economy</div>
-            <div class="stat-figure" style="font-size: 1.5rem;">Macroeconomics & Trade</div>
-            <div class="stat-note">GDP growth, inflation, exports, imports, and time-series explorer.</div>
+            <div class="stat-label">${t('explore_economy')}</div>
+            <div class="stat-figure" style="font-size: 1.5rem;">${t('eco_card_title')}</div>
+            <div class="stat-note">${t('eco_card_note')}</div>
           </div>
-          <div class="stat-source">&rarr; View Economy page</div>
+          <div class="stat-source">${t('view_economy')}</div>
         </a>
         <a href="#/people" class="stat-card" style="text-decoration: none;">
           <div>
-            <div class="stat-label">Explore People</div>
-            <div class="stat-figure" style="font-size: 1.5rem;">Society & Welfare</div>
-            <div class="stat-note">Poverty rates, unemployment, population growth, and visitor arrivals.</div>
+            <div class="stat-label">${t('explore_people')}</div>
+            <div class="stat-figure" style="font-size: 1.5rem;">${t('people_card_title')}</div>
+            <div class="stat-note">${t('people_card_note')}</div>
           </div>
-          <div class="stat-source">&rarr; View People page</div>
+          <div class="stat-source">${t('view_people')}</div>
         </a>
         <a href="#/provinces" class="stat-card" style="text-decoration: none;">
           <div>
-            <div class="stat-label">Explore Provinces</div>
-            <div class="stat-figure" style="font-size: 1.5rem;">Regional Statistics</div>
-            <div class="stat-note">Population distribution across Indonesia's 38 provinces with sortable data.</div>
+            <div class="stat-label">${t('explore_provinces')}</div>
+            <div class="stat-figure" style="font-size: 1.5rem;">${t('prov_card_title')}</div>
+            <div class="stat-note">${t('prov_card_note')}</div>
           </div>
-          <div class="stat-source">&rarr; View Provinces page</div>
+          <div class="stat-source">${t('view_provinces')}</div>
         </a>
       </div>
     </section>
@@ -159,8 +160,8 @@ export function viewEconomy() {
 
   return `
     <div class="section-header">
-      <h2>Economy</h2>
-      <p>Indonesia's macroeconomic performance, national accounts, growth, inflation, and external trade.</p>
+      <h2>${t('economy_h')}</h2>
+      <p>${t('economy_sub')}</p>
     </div>
 
     <section class="view-section">
@@ -168,29 +169,29 @@ export function viewEconomy() {
         ${gdpHeadlines.map(h => `
           <div class="stat-card" data-id="${h.id}">
             <div>
-              <div class="stat-label">${h.label}</div>
-              <div class="stat-figure" ${getHeadlineAttr(h)}>${h.value} <span class="stat-unit">${h.unit}</span></div>
-              <div class="stat-note">${h.note}</div>
+              <div class="stat-label">${pick(h, 'label')}</div>
+              <div class="stat-figure" ${getHeadlineAttr(h)}>${pick(h, 'value')} <span class="stat-unit">${unit(h.unit)}</span></div>
+              <div class="stat-note">${pick(h, 'note')}</div>
             </div>
-            <div class="stat-source">Source: ${h.source}, ${h.year}</div>
+            <div class="stat-source">${t('source')}: ${h.source}, ${h.year}</div>
           </div>
         `).join('')}
       </div>
 
       <div class="chart-card">
-        <h3>Time-Series Indicator Explorer</h3>
-        <p class="chart-meta">Select an economic indicator, filter by start year, view the interactive chart and table, and download CSV data.</p>
+        <h3>${t('explorer_h')}</h3>
+        <p class="chart-meta">${t('explorer_sub')}</p>
         <div class="controls-bar">
           <div>
-            <label for="series-select" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Indicator:</label>
+            <label for="series-select" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">${t('indicator')}</label>
             <select id="series-select"></select>
           </div>
           <div>
-            <label for="series-from" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">From Year:</label>
+            <label for="series-from" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">${t('from_year')}</label>
             <select id="series-from"></select>
           </div>
           <div style="margin-top: 1.25rem;">
-            <button id="series-csv">Download CSV</button>
+            <button id="series-csv">${t('download_csv')}</button>
           </div>
         </div>
         <div class="chart-container" id="series-chart"></div>
@@ -198,39 +199,39 @@ export function viewEconomy() {
       </div>
 
       <div class="chart-card">
-        <h3>${SERIES.trade.title}</h3>
+        <h3>${pick(SERIES.trade, 'title')}</h3>
         <div class="chart-meta">
-          <span>Source: ${SERIES.trade.source}, 2019–2024</span>
-          <span>Unit: ${SERIES.trade.unit}</span>
+          <span>${t('source')}: ${SERIES.trade.source}, 2019–2024</span>
+          <span>${t('unit_word')}: ${unit(SERIES.trade.unit)}</span>
         </div>
         <div class="chart-container">
-          ${charts.tradeChart(SERIES.trade.subSeries, { title: SERIES.trade.title, unit: SERIES.trade.unit })}
+          ${charts.tradeChart(SERIES.trade.subSeries, { title: pick(SERIES.trade, 'title'), unit: unit(SERIES.trade.unit) })}
         </div>
         <div class="table-responsive">
-          <h4 style="font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem;">Latest Year (${latestTradeYear}) Trade Summary</h4>
+          <h4 style="font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem;">${t('trade_summary').replace('{y}', latestTradeYear)}</h4>
           <table>
             <thead>
               <tr>
-                <th>Indicator</th>
-                <th class="num">Value (${SERIES.trade.unit})</th>
-                <th>Source & Year</th>
+                <th>${t('th_indicator')}</th>
+                <th class="num">${t('th_value')} (${unit(SERIES.trade.unit)})</th>
+                <th>${t('th_source_year')}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Exports</td>
+                <td>${t('exports')}</td>
                 <td class="num">${latestExp.toFixed(1)}</td>
                 <td>BPS, ${latestTradeYear}</td>
               </tr>
               <tr>
-                <td>Imports</td>
+                <td>${t('imports')}</td>
                 <td class="num">${latestImp.toFixed(1)}</td>
                 <td>BPS, ${latestTradeYear}</td>
               </tr>
               <tr>
-                <td><strong>Trade Balance (Exports &minus; Imports)</strong></td>
+                <td><strong>${t('trade_balance')}</strong></td>
                 <td class="num"><strong>${tradeBalance >= 0 ? '+' : ''}${tradeBalance}</strong></td>
-                <td>Computed from BPS, ${latestTradeYear}</td>
+                <td>${t('computed_from')}, ${latestTradeYear}</td>
               </tr>
             </tbody>
           </table>
@@ -245,8 +246,8 @@ export function viewPeople() {
 
   return `
     <div class="section-header">
-      <h2>People & Society</h2>
-      <p>Demographics, workforce, living standards, poverty, and human development in Indonesia.</p>
+      <h2>${t('people_h')}</h2>
+      <p>${t('people_sub')}</p>
     </div>
 
     <section class="view-section">
@@ -254,11 +255,11 @@ export function viewPeople() {
         ${peopleHeadlines.map(h => `
           <div class="stat-card" data-id="${h.id}">
             <div>
-              <div class="stat-label">${h.label}</div>
-              <div class="stat-figure" ${getHeadlineAttr(h)}>${h.value} <span class="stat-unit">${h.unit}</span></div>
-              <div class="stat-note">${h.note}</div>
+              <div class="stat-label">${pick(h, 'label')}</div>
+              <div class="stat-figure" ${getHeadlineAttr(h)}>${pick(h, 'value')} <span class="stat-unit">${unit(h.unit)}</span></div>
+              <div class="stat-note">${pick(h, 'note')}</div>
             </div>
-            <div class="stat-source">Source: ${h.source}, ${h.year}</div>
+            <div class="stat-source">${t('source')}: ${h.source}, ${h.year}</div>
           </div>
         `).join('')}
       </div>
@@ -266,53 +267,53 @@ export function viewPeople() {
       <div class="card-grid split-grid">
         <div class="chart-card" style="margin-bottom: 0;">
           <div class="chart-meta">
-            <h3>${SERIES.poverty.title}</h3>
-            <span>Source: ${SERIES.poverty.source}</span>
+            <h3>${pick(SERIES.poverty, 'title')}</h3>
+            <span>${t('source')}: ${SERIES.poverty.source}</span>
           </div>
           <div class="chart-container">
-            ${charts.lineChart(SERIES.poverty.points, { title: SERIES.poverty.title, unit: SERIES.poverty.unit, decimals: 2, color: "#D9232E" })}
+            ${charts.lineChart(SERIES.poverty.points, { title: pick(SERIES.poverty, 'title'), unit: unit(SERIES.poverty.unit), decimals: 2, color: "#D9232E" })}
           </div>
         </div>
 
         <div class="chart-card" style="margin-bottom: 0;">
           <div class="chart-meta">
-            <h3>${SERIES.unemployment.title}</h3>
-            <span>Source: ${SERIES.unemployment.source}</span>
+            <h3>${pick(SERIES.unemployment, 'title')}</h3>
+            <span>${t('source')}: ${SERIES.unemployment.source}</span>
           </div>
           <div class="chart-container">
-            ${charts.lineChart(SERIES.unemployment.points, { title: SERIES.unemployment.title, unit: SERIES.unemployment.unit, decimals: 2, color: "#0A0F1E" })}
+            ${charts.lineChart(SERIES.unemployment.points, { title: pick(SERIES.unemployment, 'title'), unit: unit(SERIES.unemployment.unit), decimals: 2, color: charts.themeColor('--ink', '#0A0F1E') })}
           </div>
         </div>
       </div>
 
       <div class="chart-card">
         <div class="chart-meta">
-          <h3>${SERIES.visitors.title}</h3>
-          <span>Source: ${SERIES.visitors.source}, 2019–2024</span>
+          <h3>${pick(SERIES.visitors, 'title')}</h3>
+          <span>${t('source')}: ${SERIES.visitors.source}, 2019–2024</span>
         </div>
         <div class="chart-container">
-          ${charts.barChart(SERIES.visitors.points.map(p => ({ label: String(p.year), value: p.value })), { title: SERIES.visitors.title, unit: SERIES.visitors.unit, decimals: 2 })}
+          ${charts.barChart(SERIES.visitors.points.map(p => ({ label: String(p.year), value: p.value })), { title: pick(SERIES.visitors, 'title'), unit: unit(SERIES.visitors.unit), decimals: 2 })}
         </div>
       </div>
 
       <div class="chart-card">
         <div class="chart-meta">
-          <h3>Population Shares by Age Group</h3>
-          <span>Source: ${AGE.source}</span>
+          <h3>${t('age_shares_h')}</h3>
+          <span>${t('source')}: ${AGE.source}</span>
         </div>
         <div class="chart-container">
-          ${charts.barChart(AGE.items.map(a => ({ label: a.name, value: a.percent })), { title: "Population shares by age group", unit: "%", decimals: 1 })}
+          ${charts.barChart(AGE.items.map(a => ({ label: pick(a, 'name'), value: a.percent })), { title: t('age_chart_title'), unit: "%", decimals: 1 })}
         </div>
-        <p class="footnote" style="margin-top: 1rem;">${AGE.note}</p>
-        <p class="footnote">Source: ${AGE.source}</p>
+        <p class="footnote" style="margin-top: 1rem;">${pick(AGE, 'note')}</p>
+        <p class="footnote">${t('source')}: ${AGE.source}</p>
       </div>
 
       <div class="table-card">
-        <h3>About the Poverty Line</h3>
+        <h3>${t('poverty_line_h')}</h3>
         <p style="margin-top: 0.75rem; color: var(--ink);">
-          A person is counted poor when monthly spending per capita falls below the BPS poverty line, about Rp 595,000 in March 2025.
+          ${t('poverty_line_p')}
         </p>
-        <p class="footnote" style="margin-top: 0.5rem;">Source: BPS, March 2025</p>
+        <p class="footnote" style="margin-top: 0.5rem;">${t('poverty_line_src')}</p>
       </div>
     </section>
   `.trim();
@@ -321,37 +322,37 @@ export function viewPeople() {
 export function viewRegions() {
   return `
     <div class="section-header">
-      <h2>Regions</h2>
-      <p>Population distribution across Indonesia's major island groups.</p>
+      <h2>${t('regions_h')}</h2>
+      <p>${t('regions_sub')}</p>
     </div>
 
     <section class="view-section">
       <div class="chart-card">
         <div class="chart-meta">
-          <h3>Population by Island Group</h3>
-          <span>Source: ${ISLANDS.source}</span>
+          <h3>${t('pop_by_island')}</h3>
+          <span>${t('source')}: ${ISLANDS.source}</span>
         </div>
         <div class="chart-container">
-          ${charts.hbarChart(ISLANDS.items.map(i => ({ label: i.name, value: i.population })), { title: "Population by island group", unit: "million", decimals: 1 })}
+          ${charts.hbarChart(ISLANDS.items.map(i => ({ label: pick(i, 'name'), value: i.population })), { title: t('pop_by_island'), unit: unit('million'), decimals: 1 })}
         </div>
       </div>
 
       <div class="table-card">
-        <h3>Island Group Population Breakdown</h3>
-        <p class="chart-meta">Source: ${ISLANDS.source}.</p>
+        <h3>${t('island_breakdown_h')}</h3>
+        <p class="chart-meta">${t('source')}: ${ISLANDS.source}.</p>
         <div class="table-responsive">
           <table>
             <thead>
               <tr>
-                <th>Island Group</th>
-                <th class="num">Population (million)</th>
-                <th class="num">Share (%)</th>
+                <th>${t('th_island')}</th>
+                <th class="num">${t('th_pop_million')}</th>
+                <th class="num">${t('th_share')}</th>
               </tr>
             </thead>
             <tbody>
               ${ISLANDS.items.map(i => `
                 <tr>
-                  <td><strong>${i.name}</strong></td>
+                  <td><strong>${pick(i, 'name')}</strong></td>
                   <td class="num">${i.population.toFixed(1)}</td>
                   <td class="num">${i.share.toFixed(1)}%</td>
                 </tr>
@@ -359,12 +360,12 @@ export function viewRegions() {
             </tbody>
           </table>
         </div>
-        <p class="footnote" style="margin-top: 1rem;">${ISLANDS.note}</p>
-        <p class="footnote">Source: ${ISLANDS.source}</p>
+        <p class="footnote" style="margin-top: 1rem;">${pick(ISLANDS, 'note')}</p>
+        <p class="footnote">${t('source')}: ${ISLANDS.source}</p>
       </div>
 
       <div class="table-card">
-        <p style="color: var(--ink);">Java alone holds more people than the other island groups combined (56.1 percent of the national total).</p>
+        <p style="color: var(--ink);">${t('java_note')}</p>
       </div>
     </section>
   `.trim();
@@ -373,47 +374,47 @@ export function viewRegions() {
 export function viewProvinces() {
   return `
     <div class="section-header">
-      <h2>Provinces</h2>
-      <p>Regional distribution of population across Indonesia's 38 provinces.</p>
+      <h2>${t('provinces_h')}</h2>
+      <p>${t('provinces_sub')}</p>
     </div>
 
     <section class="view-section">
       <div class="chart-card">
         <div class="chart-meta">
-          <h3>Top 15 Provinces by Population</h3>
-          <span>Source: ${PROVINCES.source}</span>
+          <h3>${t('prov_ranking_h')}</h3>
+          <span>${t('source')}: ${PROVINCES.source}</span>
         </div>
         <div class="chart-container">
-          ${charts.hbarChart(PROVINCES.items.map(p => ({ label: p.name, value: +(p.population / 1e6).toFixed(2) })), { title: "Provinces by population", unit: "million", decimals: 2, height: 500 })}
+          ${charts.hbarChart(PROVINCES.items.map((p, i) => ({ label: `${i + 1}. ${pick(p, 'name')}`, value: +(p.population / 1e6).toFixed(2) })), { title: t('prov_chart_title'), unit: unit('million'), decimals: 2, height: 900 })}
         </div>
       </div>
 
       <div class="table-card">
-        <h3>Provincial Population Breakdown</h3>
-        <p class="chart-meta">Click column headers (Population, Share) to sort table data. Source: ${PROVINCES.source}.</p>
+        <h3>${t('prov_breakdown_h')}</h3>
+        <p class="chart-meta">${t('prov_sort_hint')} ${t('source')}: ${PROVINCES.source}.</p>
         <div class="table-responsive">
-          <input type="text" id="province-filter" class="filter-input" placeholder="Filter provinces by name…">
+          <input type="text" id="province-filter" class="filter-input" placeholder="${t('filter_ph')}">
           <table id="province-table">
             <thead>
               <tr>
-                <th>Province</th>
-                <th class="num" data-sort="population" style="cursor: pointer;" title="Click to sort by population">Population &↕;</th>
-                <th class="num" data-sort="share" style="cursor: pointer;" title="Click to sort by share">Share (%) &↕;</th>
+                <th>${t('th_province')}</th>
+                <th class="num" data-sort="population" style="cursor: pointer;" title="${t('sort_pop')}">${t('th_population')} &↕;</th>
+                <th class="num" data-sort="share" style="cursor: pointer;" title="${t('sort_share')}">${t('th_share')} &↕;</th>
               </tr>
             </thead>
             <tbody>
               ${PROVINCES.items.map(p => `
                 <tr>
-                  <td><strong>${p.name}</strong></td>
-                  <td class="num" data-value="${p.population}">${p.population.toLocaleString('en-US')}</td>
+                  <td><strong>${pick(p, 'name')}</strong></td>
+                  <td class="num" data-value="${p.population}">${p.population.toLocaleString(numLocale())}</td>
                   <td class="num" data-value="${p.share}">${p.share.toFixed(1)}%</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
-        <p class="footnote" style="margin-top: 1rem;">${PROVINCES.note}</p>
-        <p class="footnote">Source: ${PROVINCES.source}</p>
+        <p class="footnote" style="margin-top: 1rem;">${pick(PROVINCES, 'note')}</p>
+        <p class="footnote">${t('source')}: ${PROVINCES.source}</p>
       </div>
     </section>
   `.trim();
@@ -422,20 +423,20 @@ export function viewProvinces() {
 export function viewSources() {
   return `
     <div class="section-header">
-      <h2>Sources & Methodology</h2>
-      <p>Official references and statistical methodology for AngkaBangsa.</p>
+      <h2>${t('sources_h')}</h2>
+      <p>${t('sources_sub')}</p>
     </div>
 
     <section class="view-section">
       <div class="source-list">
-        <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--ink);">Official Publication Sources</h3>
+        <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--ink);">${t('pub_sources_h')}</h3>
         <ol style="list-style: none; padding: 0;">
           ${SOURCES.map(s => `
             <li class="source-item">
               <span class="source-number">[${s.id}]</span>
               <div class="source-details">
                 <h4>${s.publisher}</h4>
-                <p>${s.covers}</p>
+                <p>${pick(s, 'covers')}</p>
               </div>
             </li>
           `).join('')}
@@ -443,11 +444,11 @@ export function viewSources() {
       </div>
 
       <div class="table-card">
-        <h3>Methodological Notes</h3>
+        <h3>${t('method_h')}</h3>
         <ul style="margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--muted); font-size: 0.95rem; margin-top: 0.75rem;">
-          <li>Figures are reproduced as published by the sources.</li>
-          <li>Percentages may not sum to 100 because of rounding.</li>
-          <li>The site works fully offline and collects no data about its visitors.</li>
+          <li>${t('method_1')}</li>
+          <li>${t('method_2')}</li>
+          <li>${t('method_3')}</li>
         </ul>
       </div>
     </section>

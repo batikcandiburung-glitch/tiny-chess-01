@@ -1,10 +1,13 @@
 import * as views from './views.js';
 import { SERIES, PROVINCES } from './data.js';
 import * as charts from './charts.js';
+import { getSettings, setSetting, applySettings } from './settings.js';
+import { t, pick, unit, numLocale } from './i18n.js';
 import { animate, stagger, onScroll, createDrawable } from '../vendor/anime.esm.min.js';
 
 // Module scope setup
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+applySettings();
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || getSettings().motion === 'reduced';
 const Lenis = window.Lenis;
 
 let lenis = null;
@@ -50,9 +53,9 @@ if (!document.getElementById(skeletonStyleId)) {
   styleEl.id = skeletonStyleId;
   styleEl.textContent = `
     .skeleton { display: flex; flex-direction: column; gap: 2.5rem; width: 100%; }
-    .skel-hero { height: 220px; background: linear-gradient(90deg, #E3E8F0 25%, #EEF2F7 50%, #E3E8F0 75%); background-size: 200% 100%; animation: skel-pulse 1.5s infinite; border-radius: 24px; }
+    .skel-hero { height: 220px; background: linear-gradient(90deg, var(--skeleton-bg) 25%, var(--surface-2) 50%, var(--skeleton-bg) 75%); background-size: 200% 100%; animation: skel-pulse 1.5s infinite; border-radius: 24px; }
     .skel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-    .skel-card { height: 160px; background: linear-gradient(90deg, #E3E8F0 25%, #EEF2F7 50%, #E3E8F0 75%); background-size: 200% 100%; animation: skel-pulse 1.5s infinite; border-radius: 18px; }
+    .skel-card { height: 160px; background: linear-gradient(90deg, var(--skeleton-bg) 25%, var(--surface-2) 50%, var(--skeleton-bg) 75%); background-size: 200% 100%; animation: skel-pulse 1.5s infinite; border-radius: 18px; }
     @keyframes skel-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   `;
   document.head.appendChild(styleEl);
@@ -332,7 +335,7 @@ function initAnimeWiring() {
 
         const formatVal = (v) => {
           if (isEn) {
-            return v.toLocaleString('en-US', {
+            return v.toLocaleString(numLocale(), {
               minimumFractionDigits: decimals,
               maximumFractionDigits: decimals
             });
@@ -398,7 +401,7 @@ function initEconomyExplorer() {
     Object.values(SERIES).forEach(s => {
       const opt = document.createElement('option');
       opt.value = s.id;
-      opt.textContent = s.title;
+      opt.textContent = pick(s, 'title');
       seriesSelect.appendChild(opt);
     });
   }
@@ -411,7 +414,7 @@ function initEconomyExplorer() {
     if (seriesId === 'trade') {
       fromSelect.disabled = true;
       fromSelect.innerHTML = '<option value="">N/A</option>';
-      chartContainer.innerHTML = charts.tradeChart(seriesData.subSeries, { title: seriesData.title, unit: seriesData.unit });
+      chartContainer.innerHTML = charts.tradeChart(seriesData.subSeries, { title: pick(seriesData, 'title'), unit: unit(seriesData.unit) });
       
       const exportsPts = seriesData.subSeries.exports;
       const importsPts = seriesData.subSeries.imports;
@@ -419,11 +422,11 @@ function initEconomyExplorer() {
         <table>
           <thead>
             <tr>
-              <th>Year</th>
-              <th class="num">Exports (${seriesData.unit})</th>
-              <th class="num">Imports (${seriesData.unit})</th>
-              <th class="num">Trade Balance (${seriesData.unit})</th>
-              <th>Source</th>
+              <th>${t('year')}</th>
+              <th class="num">${t('exports')} (${unit(seriesData.unit)})</th>
+              <th class="num">${t('imports')} (${unit(seriesData.unit)})</th>
+              <th class="num">${t('balance')} (${unit(seriesData.unit)})</th>
+              <th>${t('source')}</th>
             </tr>
           </thead>
           <tbody>
@@ -477,14 +480,14 @@ function initEconomyExplorer() {
     const activeFrom = parseInt(fromSelect.value, 10) || minYear;
     const filteredPoints = points.filter(p => p.year >= activeFrom);
 
-    chartContainer.innerHTML = charts.lineChart(filteredPoints, { title: seriesData.title, unit: seriesData.unit });
+    chartContainer.innerHTML = charts.lineChart(filteredPoints, { title: pick(seriesData, 'title'), unit: unit(seriesData.unit) });
     tableContainer.innerHTML = `
       <table>
         <thead>
           <tr>
-            <th>Year</th>
-            <th class="num">Value (${seriesData.unit})</th>
-            <th>Source</th>
+            <th>${t('year')}</th>
+            <th class="num">${t('th_value')} (${unit(seriesData.unit)})</th>
+            <th>${t('source')}</th>
           </tr>
         </thead>
         <tbody>
@@ -566,8 +569,8 @@ function initProvinceSorting() {
       if (tbody) {
         tbody.innerHTML = items.map(p => `
           <tr>
-            <td><strong>${p.name}</strong></td>
-            <td class="num">${p.population.toLocaleString('en-US')}</td>
+            <td><strong>${pick(p, 'name')}</strong></td>
+            <td class="num">${p.population.toLocaleString(numLocale())}</td>
             <td class="num">${p.share.toFixed(1)}%</td>
           </tr>
         `).join('');
@@ -596,9 +599,66 @@ function initProvinceSorting() {
   }
 }
 
+// --- Settings panel + chrome localization ---
+function localizeChrome() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    el.innerHTML = t(el.getAttribute('data-i18n-html'));
+  });
+}
+
+function syncSettingsUI() {
+  const s = getSettings();
+  document.querySelectorAll('.seg-control').forEach(group => {
+    const key = group.getAttribute('data-setting');
+    group.querySelectorAll('button').forEach(btn => {
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-value') === s[key] ? 'true' : 'false');
+    });
+  });
+}
+
+function initSettings() {
+  const backdrop = document.getElementById('settings-backdrop');
+  const openBtn = document.getElementById('settings-open');
+  const closeBtn = document.getElementById('settings-close');
+  if (!backdrop || !openBtn) return;
+
+  const open = () => { syncSettingsUI(); backdrop.hidden = false; };
+  const close = () => { backdrop.hidden = true; };
+  openBtn.addEventListener('click', open);
+  if (closeBtn) closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !backdrop.hidden) close(); });
+
+  backdrop.querySelectorAll('.seg-control').forEach(group => {
+    const key = group.getAttribute('data-setting');
+    group.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const value = btn.getAttribute('data-value');
+        if (getSettings()[key] === value) return;
+        setSetting(key, value);
+        syncSettingsUI();
+        if (key === 'motion') {
+          window.location.reload();
+        } else if (key === 'lang') {
+          localizeChrome();
+          renderRoute();
+        } else if (key === 'theme') {
+          renderRoute();
+        }
+      });
+    });
+  });
+  syncSettingsUI();
+}
+
 window.addEventListener('hashchange', renderRoute);
-window.addEventListener('DOMContentLoaded', () => { initChartTooltip(); renderRoute(); });
+window.addEventListener('DOMContentLoaded', () => { localizeChrome(); initSettings(); initChartTooltip(); renderRoute(); });
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  localizeChrome();
+  initSettings();
   initChartTooltip();
   renderRoute();
 }

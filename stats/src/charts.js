@@ -3,12 +3,33 @@
  */
 
 const DEFAULT_COLOR = "#D9232E";
-const SECONDARY_COLOR = "rgba(10, 15, 30, 0.55)";
-const MUTE_COLOR = "#5A6472";
-const INK_COLOR = "#0A0F1E";
-const GRID_COLOR = "#E6E2D8";
+let SECONDARY_COLOR = "rgba(10, 15, 30, 0.55)";
+let MUTE_COLOR = "#5A6472";
+let INK_COLOR = "#0A0F1E";
+let GRID_COLOR = "#E6E2D8";
 const GRAD_START = "#B30D1E";
 const GRAD_END = "#E8352C";
+
+// Chart colors follow the active theme (Settings → Appearance) by reading
+// the CSS variables the theme defines on <html>.
+function cssVar(name) {
+  try {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  } catch (e) {
+    return '';
+  }
+}
+
+export function themeColor(name, fallback) {
+  return cssVar(name) || fallback;
+}
+
+function refreshThemeColors() {
+  const ink = cssVar('--ink'); if (ink) INK_COLOR = ink;
+  const mut = cssVar('--muted'); if (mut) MUTE_COLOR = mut;
+  const grid = cssVar('--hairline'); if (grid) GRID_COLOR = grid;
+  const soft = cssVar('--ink-55'); if (soft) SECONDARY_COLOR = soft;
+}
 
 export function lineChart(points, options = {}) {
   const {
@@ -19,6 +40,7 @@ export function lineChart(points, options = {}) {
     width = 700,
     height = 320
   } = options;
+  refreshThemeColors();
 
   if (!points || points.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
@@ -141,6 +163,7 @@ export function tradeChart(subSeries, options = {}) {
     width = 700,
     height = 340
   } = options;
+  refreshThemeColors();
 
   const exportsPoints = subSeries.exports || [];
   const importsPoints = subSeries.imports || [];
@@ -275,6 +298,7 @@ export function barChart(items, options = {}) {
     width = 700,
     height = 320
   } = options;
+  refreshThemeColors();
 
   if (!items || items.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
@@ -334,6 +358,7 @@ export function hbarChart(items, options = {}) {
     width = 920,
     height = 500
   } = options;
+  refreshThemeColors();
 
   if (!items || items.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
