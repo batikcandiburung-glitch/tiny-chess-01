@@ -94,15 +94,15 @@ export function viewOverview() {
         </div>
       </div>
 
-      <div class="card-grid" style="grid-template-columns: 1fr 1fr; align-items: start;">
+      <div class="card-grid split-grid">
         <div class="table-card">
           <h3>Country Facts</h3>
           <div class="table-responsive">
-            <dl style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1rem; padding: 0.5rem 0;">
+            <dl class="facts-list">
               ${FACTS.map(f => `
-                <div style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem;">
-                  <dt style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">${f.label}</dt>
-                  <dd style="font-size: 1rem; color: var(--text); font-family: var(--font-serif); font-weight: bold; margin-top: 0.15rem;">${f.value} <span style="font-size: 0.75rem; font-family: var(--font-sans); font-weight: normal; color: var(--text-muted);">(${f.source}, ${f.year})</span></dd>
+                <div>
+                  <dt>${f.label}</dt>
+                  <dd>${f.value} <span class="fact-src">(${f.source}, ${f.year})</span></dd>
                 </div>
               `).join('')}
             </dl>
@@ -207,7 +207,7 @@ export function viewEconomy() {
           ${charts.tradeChart(SERIES.trade.subSeries, { title: SERIES.trade.title, unit: SERIES.trade.unit })}
         </div>
         <div class="table-responsive">
-          <h4 style="font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem; font-family: var(--font-serif);">Latest Year (${latestTradeYear}) Trade Summary</h4>
+          <h4 style="font-size: 1rem; margin-top: 1rem; margin-bottom: 0.5rem;">Latest Year (${latestTradeYear}) Trade Summary</h4>
           <table>
             <thead>
               <tr>
@@ -263,14 +263,14 @@ export function viewPeople() {
         `).join('')}
       </div>
 
-      <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="card-grid split-grid">
         <div class="chart-card" style="margin-bottom: 0;">
           <div class="chart-meta">
             <h3>${SERIES.poverty.title}</h3>
             <span>Source: ${SERIES.poverty.source}</span>
           </div>
           <div class="chart-container">
-            ${charts.lineChart(SERIES.poverty.points, { title: SERIES.poverty.title, unit: SERIES.poverty.unit, decimals: 2, color: "#841324" })}
+            ${charts.lineChart(SERIES.poverty.points, { title: SERIES.poverty.title, unit: SERIES.poverty.unit, decimals: 2, color: "#D9232E" })}
           </div>
         </div>
 
@@ -280,7 +280,7 @@ export function viewPeople() {
             <span>Source: ${SERIES.unemployment.source}</span>
           </div>
           <div class="chart-container">
-            ${charts.lineChart(SERIES.unemployment.points, { title: SERIES.unemployment.title, unit: SERIES.unemployment.unit, decimals: 2, color: "#C89B3C" })}
+            ${charts.lineChart(SERIES.unemployment.points, { title: SERIES.unemployment.title, unit: SERIES.unemployment.unit, decimals: 2, color: "#0A0F1E" })}
           </div>
         </div>
       </div>
@@ -309,7 +309,7 @@ export function viewPeople() {
 
       <div class="table-card">
         <h3>About the Poverty Line</h3>
-        <p style="margin-top: 0.75rem; color: var(--text);">
+        <p style="margin-top: 0.75rem; color: var(--ink);">
           A person is counted poor when monthly spending per capita falls below the BPS poverty line, about Rp 595,000 in March 2025.
         </p>
         <p class="footnote" style="margin-top: 0.5rem;">Source: BPS, March 2025</p>
@@ -364,7 +364,7 @@ export function viewRegions() {
       </div>
 
       <div class="table-card">
-        <p style="color: var(--text);">Java alone holds more people than the other island groups combined (56.1 percent of the national total).</p>
+        <p style="color: var(--ink);">Java alone holds more people than the other island groups combined (56.1 percent of the national total).</p>
       </div>
     </section>
   `.trim();
@@ -428,7 +428,7 @@ export function viewSources() {
 
     <section class="view-section">
       <div class="source-list">
-        <h3 style="font-family: var(--font-serif); font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--text);">Official Publication Sources</h3>
+        <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--ink);">Official Publication Sources</h3>
         <ol style="list-style: none; padding: 0;">
           ${SOURCES.map(s => `
             <li class="source-item">
@@ -444,7 +444,7 @@ export function viewSources() {
 
       <div class="table-card">
         <h3>Methodological Notes</h3>
-        <ul style="margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--text-muted); font-size: 0.95rem; margin-top: 0.75rem;">
+        <ul style="margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--muted); font-size: 0.95rem; margin-top: 0.75rem;">
           <li>Figures are reproduced as published by the sources.</li>
           <li>Percentages may not sum to 100 because of rounding.</li>
           <li>The site works fully offline and collects no data about its visitors.</li>

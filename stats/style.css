@@ -369,6 +369,53 @@ section.view-section {
   gap: 16px;
 }
 
+.card-grid > * {
+  min-width: 0;
+}
+
+/* Two-up split section (Country Facts + Religious Composition on Overview) */
+.split-grid {
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
+/* Country Facts definition list */
+.facts-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+  padding: 0.5rem 0;
+  margin: 0;
+}
+
+.facts-list > div {
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 0.5rem;
+  min-width: 0;
+}
+
+.facts-list dt {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+}
+
+.facts-list dd {
+  font-size: 1rem;
+  color: var(--ink);
+  font-weight: 700;
+  margin: 0.15rem 0 0;
+  overflow-wrap: break-word;
+}
+
+.facts-list dd .fact-src {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
 .stat-card, .chart-card, .table-card {
   background-color: var(--surface);
   border: 1px solid var(--hairline);
@@ -876,6 +923,14 @@ button#series-csv:active {
   }
 
   .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .split-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .facts-list {
     grid-template-columns: 1fr;
   }
 
