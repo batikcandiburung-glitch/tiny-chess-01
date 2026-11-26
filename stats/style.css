@@ -446,8 +446,13 @@ section.view-section {
   color: var(--muted);
 }
 
-.stat-card, .chart-card, .table-card {
-  background-color: var(--surface);
+/* SVG chart pieces scale around their own box, so bar/dot animation
+   origins stay pinned (bars grow from the axis, never drift sideways) */
+.grow-bar, .pop-dot {
+  transform-box: fill-box;
+}
+
+.stat-card, .chart-card, .table-card {  background-color: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: 16px;
   padding: 22px;
