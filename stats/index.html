@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
+  <div class="layout">
+    <aside class="sidebar">
       <div class="brand">
         <h1><a href="#/">AngkaBangsa</a></h1>
         <p class="tagline">Indonesia in Numbers</p>
@@ -23,19 +23,21 @@
           <li><a href="#/sources" class="nav-link" data-route="/sources">Sources</a></li>
         </ul>
       </nav>
-    </div>
-  </header>
+      <div class="sidebar-foot">All figures from official sources — see the Sources page.</div>
+    </aside>
+    <div class="page">
+      <main id="app" class="main-content">
+        <!-- Router or initial load view container -->
+      </main>
 
-  <main id="app" class="main-content">
-    <!-- Router or initial load view container -->
-  </main>
-
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <p>All figures come from official sources, chiefly BPS – Statistics Indonesia. View the full list of sources on the <a href="#/sources">Sources page</a>.</p>
-      <p class="footer-sub">&copy; AngkaBangsa — Indonesia in Statistics</p>
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <p>All figures come from official sources, chiefly BPS – Statistics Indonesia. View the full list of sources on the <a href="#/sources">Sources page</a>.</p>
+          <p class="footer-sub">&copy; AngkaBangsa — Indonesia in Statistics</p>
+        </div>
+      </footer>
     </div>
-  </footer>
+  </div>
 
   <script type="module" src="./src/main.js"></script>
 </body>
