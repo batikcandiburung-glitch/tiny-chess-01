@@ -12,6 +12,7 @@
       abEl.dataset.theme = abSettings.theme || 'light';
       abEl.dataset.text = abSettings.text || 'normal';
       abEl.dataset.motion = abSettings.motion || 'full';
+      abEl.dataset.view = abSettings.view || 'auto';
       if (abSettings.lang) abEl.setAttribute('lang', abSettings.lang);
     } catch (e) {}
   </script>
@@ -34,10 +35,50 @@
           <li><a href="#/sources" class="nav-link" data-route="/sources" data-i18n="nav_sources">Sources</a></li>
         </ul>
       </nav>
-      <button class="settings-btn" id="settings-open" type="button">
+      <button class="settings-btn" id="settings-open" type="button" aria-expanded="false" aria-controls="settings-panel">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span data-i18n="settings">Settings</span>
+        <svg class="settings-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
+      <div class="settings-panel" id="settings-panel" hidden>
+        <div class="settings-group">
+          <span data-i18n="set_theme">Appearance</span>
+          <div class="seg-control" data-setting="theme">
+            <button type="button" data-value="light" data-i18n="light">Light</button>
+            <button type="button" data-value="dark" data-i18n="dark">Dark</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <span data-i18n="set_lang">Language</span>
+          <div class="seg-control" data-setting="lang">
+            <button type="button" data-value="en">English</button>
+            <button type="button" data-value="id">Bahasa Indonesia</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <span data-i18n="set_view">View</span>
+          <div class="seg-control" data-setting="view">
+            <button type="button" data-value="auto" data-i18n="view_auto">Auto</button>
+            <button type="button" data-value="desktop" data-i18n="view_pc">PC</button>
+            <button type="button" data-value="phone" data-i18n="view_phone">Smartphone</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <span data-i18n="set_text">Text size</span>
+          <div class="seg-control" data-setting="text">
+            <button type="button" data-value="small" data-i18n="small">Small</button>
+            <button type="button" data-value="normal" data-i18n="normal">Normal</button>
+            <button type="button" data-value="large" data-i18n="large">Large</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <span data-i18n="set_motion">Motion</span>
+          <div class="seg-control" data-setting="motion">
+            <button type="button" data-value="full" data-i18n="motion_full">Full</button>
+            <button type="button" data-value="reduced" data-i18n="motion_reduced">Reduced</button>
+          </div>
+        </div>
+      </div>
       <div class="sidebar-foot" data-i18n="sidebar_foot">All figures from official sources — see the Sources page.</div>
     </aside>
     <div class="page">
@@ -54,43 +95,6 @@
     </div>
   </div>
 
-  <div class="settings-backdrop" id="settings-backdrop" hidden>
-    <div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <div class="settings-head">
-        <h3 id="settings-title" data-i18n="settings">Settings</h3>
-        <button class="settings-close" id="settings-close" type="button" aria-label="Close">&times;</button>
-      </div>
-      <div class="settings-group">
-        <span data-i18n="set_theme">Appearance</span>
-        <div class="seg-control" data-setting="theme">
-          <button type="button" data-value="light" data-i18n="light">Light</button>
-          <button type="button" data-value="dark" data-i18n="dark">Dark</button>
-        </div>
-      </div>
-      <div class="settings-group">
-        <span data-i18n="set_lang">Language</span>
-        <div class="seg-control" data-setting="lang">
-          <button type="button" data-value="en">English</button>
-          <button type="button" data-value="id">Bahasa Indonesia</button>
-        </div>
-      </div>
-      <div class="settings-group">
-        <span data-i18n="set_text">Text size</span>
-        <div class="seg-control" data-setting="text">
-          <button type="button" data-value="small" data-i18n="small">Small</button>
-          <button type="button" data-value="normal" data-i18n="normal">Normal</button>
-          <button type="button" data-value="large" data-i18n="large">Large</button>
-        </div>
-      </div>
-      <div class="settings-group">
-        <span data-i18n="set_motion">Motion</span>
-        <div class="seg-control" data-setting="motion">
-          <button type="button" data-value="full" data-i18n="motion_full">Full</button>
-          <button type="button" data-value="reduced" data-i18n="motion_reduced">Reduced</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script src="./vendor/lenis.min.js"></script>
   <script type="module" src="./src/main.js"></script>

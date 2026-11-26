@@ -21,7 +21,9 @@ function updateScrollProgress() {
     const max = el.scrollHeight - el.clientHeight;
     const frac = max > 0 ? Math.min(1, (window.scrollY || el.scrollTop) / max) : 0;
     const pct = (frac * 100).toFixed(2) + '%';
-    if (window.matchMedia('(max-width: 900px)').matches) {
+    const viewMode = getSettings().view;
+    const horizontal = viewMode === 'phone' || (viewMode === 'auto' && window.matchMedia('(max-width: 900px)').matches);
+    if (horizontal) {
       fill.style.width = pct;
       fill.style.height = '100%';
     } else {
@@ -620,19 +622,18 @@ function syncSettingsUI() {
 }
 
 function initSettings() {
-  const backdrop = document.getElementById('settings-backdrop');
+  const panel = document.getElementById('settings-panel');
   const openBtn = document.getElementById('settings-open');
-  const closeBtn = document.getElementById('settings-close');
-  if (!backdrop || !openBtn) return;
+  if (!panel || !openBtn) return;
 
-  const open = () => { syncSettingsUI(); backdrop.hidden = false; };
-  const close = () => { backdrop.hidden = true; };
-  openBtn.addEventListener('click', open);
-  if (closeBtn) closeBtn.addEventListener('click', close);
-  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !backdrop.hidden) close(); });
+  openBtn.addEventListener('click', () => {
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    openBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (willOpen) syncSettingsUI();
+  });
 
-  backdrop.querySelectorAll('.seg-control').forEach(group => {
+  panel.querySelectorAll('.seg-control').forEach(group => {
     const key = group.getAttribute('data-setting');
     group.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -647,6 +648,8 @@ function initSettings() {
           renderRoute();
         } else if (key === 'theme') {
           renderRoute();
+        } else if (key === 'view') {
+          updateScrollProgress();
         }
       });
     });

@@ -3,7 +3,7 @@
 // sandboxed frames where storage may throw; an in-memory copy always works).
 
 const KEY = 'angkabangsa-settings';
-const DEFAULTS = { theme: 'light', lang: 'en', text: 'normal', motion: 'full' };
+const DEFAULTS = { theme: 'light', lang: 'en', text: 'normal', motion: 'full', view: 'auto' };
 
 let current = { ...DEFAULTS };
 try {
@@ -20,6 +20,7 @@ export function applySettings() {
   el.dataset.theme = current.theme;
   el.dataset.text = current.text;
   el.dataset.motion = current.motion;
+  el.dataset.view = current.view;
   el.setAttribute('lang', current.lang === 'id' ? 'id' : 'en');
 }
 
