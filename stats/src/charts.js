@@ -376,7 +376,10 @@ export function hbarChart(items, options = {}) {
     const barW = (item.value / (maxVal || 1)) * chartWidth;
 
     return `
-      <text x="182" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="end" font-size="12" fill="${INK_COLOR}" font-weight="500">${item.label}</text>
+      ${item.rank != null
+        ? `<text x="36" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="end" font-size="12" fill="${MUTE_COLOR}" font-weight="700">${item.rank}.</text>
+      <text x="46" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="start" font-size="12" fill="${INK_COLOR}" font-weight="500">${item.label}</text>`
+        : `<text x="10" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="start" font-size="12" fill="${INK_COLOR}" font-weight="500">${item.label}</text>`}
       <rect class="grow-bar" data-orient="h" x="${margin.left}" y="${y.toFixed(1)}" width="${Math.max(barW, 2).toFixed(1)}" height="${barH.toFixed(1)}" fill="url(#barGrad)" rx="4"/>
       <text x="${(margin.left + barW + 8).toFixed(1)}" y="${(y + barH * 0.7).toFixed(1)}" font-size="12" font-family="Georgia, serif" font-weight="600" fill="${INK_COLOR}">${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}</text>
     `;

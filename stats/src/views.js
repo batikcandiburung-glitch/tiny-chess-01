@@ -385,7 +385,7 @@ export function viewProvinces() {
           <span>${t('source')}: ${PROVINCES.source}</span>
         </div>
         <div class="chart-container">
-          ${charts.hbarChart(PROVINCES.items.map((p, i) => ({ label: `${i + 1}. ${pick(p, 'name')}`, value: +(p.population / 1e6).toFixed(2) })), { title: t('prov_chart_title'), unit: unit('million'), decimals: 2, height: 900 })}
+          ${charts.hbarChart(PROVINCES.items.map((p, i) => ({ rank: i + 1, label: pick(p, 'name'), value: +(p.population / 1e6).toFixed(2) })), { title: t('prov_chart_title'), unit: unit('million'), decimals: 2, height: 900 })}
         </div>
       </div>
 
