@@ -10,19 +10,31 @@ const GRID_COLOR = "#E6E2D8";
 const GRAD_START = "#B30D1E";
 const GRAD_END = "#E8352C";
 
+// On narrow (phone) viewports, draw the SVG near its real display width so
+// chart text renders close to full size instead of being scaled down from
+// the desktop viewBox width. Desktop geometry is untouched.
+function adaptiveWidth(desktopWidth) {
+  const vw = (typeof document !== "undefined" && document.documentElement && document.documentElement.clientWidth) || 0;
+  if (!vw || vw > 760) return { w: desktopWidth, narrow: false };
+  return { w: Math.max(300, Math.min(desktopWidth, vw - 88)), narrow: true };
+}
+
 export function lineChart(points, options = {}) {
   const {
     title = "",
     unit = "",
     decimals = 2,
     color = DEFAULT_COLOR,
-    width = 700,
+    width: widthOpt = 700,
     height = 320
   } = options;
+  const { w: width, narrow } = adaptiveWidth(widthOpt);
 
   if (!points || points.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
-  const margin = { top: 35, right: 60, bottom: 40, left: 118 };
+  const margin = narrow
+    ? { top: 35, right: 46, bottom: 40, left: 86 }
+    : { top: 35, right: 60, bottom: 40, left: 118 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -138,9 +150,10 @@ export function tradeChart(subSeries, options = {}) {
     title = "Exports and imports",
     unit = "billion US dollars",
     decimals = 1,
-    width = 700,
+    width: widthOpt = 700,
     height = 340
   } = options;
+  const { w: width, narrow } = adaptiveWidth(widthOpt);
 
   const exportsPoints = subSeries.exports || [];
   const importsPoints = subSeries.imports || [];
@@ -148,7 +161,9 @@ export function tradeChart(subSeries, options = {}) {
 
   if (points.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
-  const margin = { top: 45, right: 70, bottom: 40, left: 118 };
+  const margin = narrow
+    ? { top: 45, right: 66, bottom: 40, left: 80 }
+    : { top: 45, right: 70, bottom: 40, left: 118 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -272,13 +287,16 @@ export function barChart(items, options = {}) {
     unit = "",
     decimals = 2,
     color = DEFAULT_COLOR,
-    width = 700,
+    width: widthOpt = 700,
     height = 320
   } = options;
+  const { w: width, narrow } = adaptiveWidth(widthOpt);
 
   if (!items || items.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
-  const margin = { top: 35, right: 30, bottom: 60, left: 68 };
+  const margin = narrow
+    ? { top: 35, right: 16, bottom: 60, left: 84 }
+    : { top: 35, right: 30, bottom: 60, left: 68 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -331,15 +349,19 @@ export function hbarChart(items, options = {}) {
     unit = "",
     decimals = 1,
     color = DEFAULT_COLOR,
-    width = 920,
+    width: widthOpt = 920,
     height = 500
   } = options;
+  const { w: width, narrow } = adaptiveWidth(widthOpt);
 
   if (!items || items.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
-  const margin = { top: 25, right: 80, bottom: 25, left: 190 };
+  const margin = narrow
+    ? { top: 16, right: 76, bottom: 16, left: 116 }
+    : { top: 25, right: 80, bottom: 25, left: 190 };
+  const H = narrow ? margin.top + margin.bottom + items.length * 34 : height;
   const chartWidth = width - margin.left - margin.right;
-  const chartHeight = height - margin.top - margin.bottom;
+  const chartHeight = H - margin.top - margin.bottom;
 
   const values = items.map(d => d.value);
   const maxVal = Math.max(...values) * 1.15;
@@ -351,14 +373,14 @@ export function hbarChart(items, options = {}) {
     const barW = (item.value / (maxVal || 1)) * chartWidth;
 
     return `
-      <text x="182" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="end" font-size="12" fill="${INK_COLOR}" font-weight="500">${item.label}</text>
+      <text x="${margin.left - 8}" y="${(y + barH * 0.7).toFixed(1)}" text-anchor="end" font-size="12" fill="${INK_COLOR}" font-weight="500">${item.label}</text>
       <rect class="grow-bar" data-orient="h" x="${margin.left}" y="${y.toFixed(1)}" width="${Math.max(barW, 2).toFixed(1)}" height="${barH.toFixed(1)}" fill="url(#barGrad)" rx="4"/>
       <text x="${(margin.left + barW + 8).toFixed(1)}" y="${(y + barH * 0.7).toFixed(1)}" font-size="12" font-family="Georgia, serif" font-weight="600" fill="${INK_COLOR}">${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}</text>
     `;
   }).join('');
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 ${width} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">
       <title>${title}</title>
       <defs>
         <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
