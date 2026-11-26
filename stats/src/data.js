@@ -301,11 +301,30 @@ export const PROVINCES = {
     { name: "Lampung", population: 9007848, share: 3.3 },
     { name: "South Sumatra", population: 8467432, share: 3.1 },
     { name: "Riau", population: 6394087, share: 2.4 },
-    { name: "West Sumatra", population: 5534472, share: 2.1 },
+    { name: "West Sumatra", population: 5534472, share: 2.0 },
+    { name: "West Kalimantan", population: 5414390, share: 2.0 },
     { name: "East Nusa Tenggara", population: 5325566, share: 2.0 },
     { name: "West Nusa Tenggara", population: 5320092, share: 2.0 },
     { name: "Aceh", population: 5274871, share: 2.0 },
-    { name: "Bali", population: 4317404, share: 1.6 }
+    { name: "Bali", population: 4317404, share: 1.6 },
+    { name: "Papua", population: 4303707, share: 1.6 },
+    { name: "South Kalimantan", population: 4073584, share: 1.5 },
+    { name: "East Kalimantan", population: 3766039, share: 1.4 },
+    { name: "Yogyakarta", population: 3668719, share: 1.4 },
+    { name: "Jambi", population: 3548228, share: 1.3 },
+    { name: "Central Sulawesi", population: 2985734, share: 1.1 },
+    { name: "Central Kalimantan", population: 2669969, share: 1.0 },
+    { name: "Southeast Sulawesi", population: 2624875, share: 1.0 },
+    { name: "North Sulawesi", population: 2621923, share: 1.0 },
+    { name: "Riau Islands", population: 2064564, share: 0.8 },
+    { name: "Bengkulu", population: 2010670, share: 0.7 },
+    { name: "Maluku", population: 1848923, share: 0.7 },
+    { name: "Bangka Belitung", population: 1455678, share: 0.5 },
+    { name: "West Sulawesi", population: 1419229, share: 0.5 },
+    { name: "North Maluku", population: 1282937, share: 0.5 },
+    { name: "Gorontalo", population: 1171681, share: 0.4 },
+    { name: "West Papua", population: 1134068, share: 0.4 },
+    { name: "North Kalimantan", population: 701814, share: 0.3 }
   ]
 };
 
