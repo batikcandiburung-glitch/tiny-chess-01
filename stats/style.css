@@ -175,6 +175,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 .site-nav .nav-link {
   display: flex;
   align-items: center;
+  gap: 0.55rem;
   padding: 0.6rem 0.85rem;
   border-radius: 11px;
   color: var(--ink-80);
@@ -182,6 +183,10 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
   font-weight: 500;
   font-size: 0.9rem;
   transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.site-nav .nav-link svg {
+  flex: 0 0 auto;
 }
 
 .site-nav .nav-link:hover {
@@ -992,20 +997,22 @@ button#series-csv:active {
   width: 100%;
   margin-top: 1rem;
   padding: 0.6rem 0.85rem;
-  border: 1px solid var(--hairline);
+  border: none;
   border-radius: 11px;
-  background: var(--surface);
+  background: transparent;
   color: var(--ink-80);
   font-family: var(--font-sans);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
   text-align: left;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .settings-btn:hover {
   background: var(--surface-2);
   color: var(--ink);
+  transform: translateX(3px);
 }
 
 .settings-btn svg {
@@ -1022,12 +1029,13 @@ button#series-csv:active {
 }
 
 .settings-panel {
-  margin-top: 0.75rem;
-  padding: 0.9rem 0.9rem 1rem;
-  background: var(--surface-2);
-  border: 1px solid var(--hairline);
-  border-radius: 14px;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.85rem 0.5rem;
   animation: settingsIn 0.18s ease;
+}
+
+.settings-panel .seg-control button {
+  background: transparent;
 }
 
 @keyframes settingsIn {
