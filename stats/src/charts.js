@@ -94,6 +94,10 @@ export function lineChart(points, options = {}) {
     return `<circle${dotClass} cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${dotColor}" stroke="#FFFFFF" stroke-width="${strokeWidth}"/>`;
   }).join('');
 
+  const hitCircles = coords.map(c => {
+    return `<circle class="hit" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="11" fill="transparent" data-tip="${c.year} — ${c.value.toFixed(decimals)}${unit ? ' ' + unit : ''}"/>`;
+  }).join('');
+
   const lastPoint = coords[coords.length - 1];
   const lastCallout = `<text x="${lastPoint.x + 8}" y="${lastPoint.y + 4}" font-family="Georgia, serif" font-weight="600" font-size="13" fill="${INK_COLOR}">${lastPoint.value.toFixed(decimals)}</text>`;
 
@@ -121,8 +125,9 @@ export function lineChart(points, options = {}) {
       <!-- Series Path -->
       <path class="draw-line" d="${pathD}" fill="none" stroke="${DEFAULT_COLOR}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
       
-      <!-- Data Dots & Callout -->
+      <!-- Data Dots, Hits & Callout -->
       ${dots}
+      ${hitCircles}
       ${lastCallout}
     </svg>
   `.trim();
@@ -210,6 +215,13 @@ export function tradeChart(subSeries, options = {}) {
     return `<circle${dotClass} cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${SECONDARY_COLOR}" stroke="#FFFFFF" stroke-width="${isLast ? 2 : 1.5}"/>`;
   }).join('');
 
+  const expHits = expCoords.map(c => {
+    return `<circle class="hit" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="11" fill="transparent" data-tip="${c.year} — Exports ${c.value.toFixed(decimals)}${unit ? ' ' + unit : ''}"/>`;
+  }).join('');
+  const impHits = impCoords.map(c => {
+    return `<circle class="hit" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="11" fill="transparent" data-tip="${c.year} — Imports ${c.value.toFixed(decimals)}${unit ? ' ' + unit : ''}"/>`;
+  }).join('');
+
   const lastExp = expCoords[expCoords.length - 1];
   const lastImp = impCoords[impCoords.length - 1];
   const expCallout = `<text x="${lastExp.x + 8}" y="${lastExp.y + 4}" font-family="Georgia, serif" font-weight="600" font-size="12" fill="${INK_COLOR}">Exp: ${lastExp.value.toFixed(decimals)}</text>`;
@@ -246,6 +258,8 @@ export function tradeChart(subSeries, options = {}) {
       
       ${expDots}
       ${impDots}
+      ${expHits}
+      ${impHits}
       ${expCallout}
       ${impCallout}
     </svg>
@@ -288,7 +302,7 @@ export function barChart(items, options = {}) {
     const y = getY(item.value);
     const h = margin.top + chartHeight - y;
     return `
-      <rect class="grow-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="url(#barGrad)" rx="4"/>
+      <rect class="grow-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="url(#barGrad)" rx="4" data-tip="${item.label} — ${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}"/>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle" font-size="10" fill="${INK_COLOR}" font-weight="600">${item.value.toFixed(decimals)}</text>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${(margin.top + chartHeight + 16).toFixed(1)}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}" transform="rotate(-35, ${(x + barWidth / 2).toFixed(1)}, ${(margin.top + chartHeight + 16).toFixed(1)})">${item.label}</text>
     `;

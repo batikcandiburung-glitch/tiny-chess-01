@@ -48,6 +48,53 @@ const routes = {
 let renderToken = 0;
 let activeAnimations = [];
 
+// --- Chart tooltip (delegated, one element for the whole app) ---
+let chartTipEl = null;
+function hideChartTip() {
+  if (chartTipEl) chartTipEl.classList.remove('show');
+}
+function initChartTooltip() {
+  const appEl = document.getElementById('app');
+  if (!appEl || appEl.dataset.tipWired) return;
+  appEl.dataset.tipWired = '1';
+  const ensureTip = () => {
+    if (!chartTipEl) {
+      chartTipEl = document.createElement('div');
+      chartTipEl.className = 'chart-tip';
+      document.body.appendChild(chartTipEl);
+    }
+    return chartTipEl;
+  };
+  const position = (e) => {
+    const tip = ensureTip();
+    tip.style.left = e.clientX + 'px';
+    tip.style.top = e.clientY + 'px';
+  };
+  appEl.addEventListener('pointerover', (e) => {
+    try {
+      const t = e.target && e.target.closest ? e.target.closest('[data-tip]') : null;
+      if (t && appEl.contains(t)) {
+        const tip = ensureTip();
+        tip.textContent = t.getAttribute('data-tip');
+        position(e);
+        tip.classList.add('show');
+      } else {
+        hideChartTip();
+      }
+    } catch (err) { /* tooltip must never break the page */ }
+  });
+  appEl.addEventListener('pointermove', (e) => {
+    try {
+      if (chartTipEl && chartTipEl.classList.contains('show')) position(e);
+    } catch (err) { /* ignore */ }
+  });
+  appEl.addEventListener('pointerout', (e) => {
+    const t = e.target && e.target.closest ? e.target.closest('[data-tip]') : null;
+    if (t) hideChartTip();
+  });
+  window.addEventListener('scroll', hideChartTip, { passive: true });
+}
+
 function renderRoute() {
   const currentToken = ++renderToken;
   const hash = window.location.hash || '#/';
@@ -56,6 +103,8 @@ function renderRoute() {
 
   const appEl = document.getElementById('app');
   if (!appEl) return;
+
+  hideChartTip();
 
   // Revert previous animations at the start of next route render
   activeAnimations.forEach(anim => {
@@ -69,6 +118,14 @@ function renderRoute() {
     if (currentToken !== renderToken) return;
 
     appEl.innerHTML = renderFunc();
+
+    // Page transition: re-trigger the pageIn animation on each render
+    if (!reducedMotion) {
+      appEl.classList.remove('page-enter');
+      void appEl.offsetWidth;
+      appEl.classList.add('page-enter');
+      setTimeout(() => appEl.classList.remove('page-enter'), 450);
+    }
 
     // Update active nav link
     document.querySelectorAll('.nav-link').forEach(link => {
@@ -521,7 +578,8 @@ function initProvinceSorting() {
 }
 
 window.addEventListener('hashchange', renderRoute);
-window.addEventListener('DOMContentLoaded', renderRoute);
+window.addEventListener('DOMContentLoaded', () => { initChartTooltip(); renderRoute(); });
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  initChartTooltip();
   renderRoute();
 }

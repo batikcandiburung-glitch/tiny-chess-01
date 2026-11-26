@@ -463,6 +463,51 @@ section.view-section {
   opacity: 0.82;
 }
 
+.chart-tip {
+  position: fixed;
+  z-index: 60;
+  pointer-events: none;
+  background: var(--ink);
+  color: var(--canvas);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 6px 9px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transition: opacity 120ms ease, transform 120ms ease;
+  transform: translate(-50%, calc(-100% - 10px));
+  white-space: nowrap;
+}
+
+.chart-tip.show {
+  opacity: 1;
+}
+
+.hit {
+  cursor: pointer;
+}
+
+svg [data-tip] {
+  cursor: pointer;
+}
+
+@keyframes pageIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: pageIn 380ms ease both;
+}
+
 /* Tables & Table Cards */
 .table-card {
   padding: 24px;
