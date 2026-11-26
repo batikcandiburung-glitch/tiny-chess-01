@@ -281,7 +281,7 @@ export function hbarChart(items, options = {}) {
   }).join('');
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 ${width} ${height}" width="100%" xmlns="http://www.w3.org/2000/svg">
       <title>${title}</title>
       ${rows}
     </svg>

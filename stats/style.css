@@ -269,7 +269,6 @@ section.view-section {
 .chart-container svg {
   width: 100%;
   height: auto;
-  max-height: 380px;
   display: block;
 }
 
@@ -350,6 +349,25 @@ select, button {
 select:hover, button:hover {
   border-color: var(--primary);
   cursor: pointer;
+}
+
+.filter-input {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.filter-input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 /* Source List & Footnotes */
