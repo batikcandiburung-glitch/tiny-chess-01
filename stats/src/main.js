@@ -75,16 +75,32 @@ const routes = {
 let renderToken = 0;
 let activeAnimations = [];
 
-// Scroll animations replay every time their target comes back into view:
-// Anime's onScroll play fires only once, so an IntersectionObserver
-// restarts each registered animation on every viewport entry.
+// Scroll animations replay every time their target comes back into view
+// while scrolling DOWN; while scrolling UP there is no replay — targets
+// snap straight to their finished state. (Anime's onScroll play fires
+// only once, so an IntersectionObserver drives this instead.)
+let scrollDirection = 'down';
+let lastScrollPos = window.scrollY || 0;
+window.addEventListener('scroll', () => {
+  const y = window.scrollY || 0;
+  if (y > lastScrollPos + 2) scrollDirection = 'down';
+  else if (y < lastScrollPos - 2) scrollDirection = 'up';
+  lastScrollPos = y;
+}, { passive: true });
+
 const animsByTarget = new Map();
 const replayObserver = ('IntersectionObserver' in window) ? new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (!entry.isIntersecting) return;
     const anims = animsByTarget.get(entry.target);
     if (!anims) return;
-    anims.forEach(a => { try { a.restart(); } catch (e) {} });
+    if (scrollDirection === 'up') {
+      anims.forEach(a => {
+        try { a.complete(); } catch (e) { try { a.seek(999999); } catch (e2) {} }
+      });
+    } else {
+      anims.forEach(a => { try { a.restart(); } catch (e) {} });
+    }
   });
 }, { threshold: 0.1 }) : null;
 
