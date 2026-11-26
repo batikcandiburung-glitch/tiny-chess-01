@@ -8,6 +8,27 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 const Lenis = window.Lenis;
 
 let lenis = null;
+
+// Scroll progress fill in the sidebar (height on desktop, width on mobile)
+function updateScrollProgress() {
+  try {
+    const fill = document.querySelector('.scroll-progress-fill');
+    if (!fill) return;
+    const el = document.documentElement;
+    const max = el.scrollHeight - el.clientHeight;
+    const frac = max > 0 ? Math.min(1, (window.scrollY || el.scrollTop) / max) : 0;
+    const pct = (frac * 100).toFixed(2) + '%';
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      fill.style.width = pct;
+      fill.style.height = '100%';
+    } else {
+      fill.style.height = pct;
+      fill.style.width = '100%';
+    }
+  } catch (e) { /* progress is decorative */ }
+}
+window.addEventListener('scroll', updateScrollProgress, { passive: true });
+
 if (Lenis && !reducedMotion) {
   lenis = new Lenis({
     duration: 1.1,
@@ -16,6 +37,7 @@ if (Lenis && !reducedMotion) {
 
   function raf(time) {
     lenis.raf(time);
+    updateScrollProgress();
     requestAnimationFrame(raf);
   }
   requestAnimationFrame(raf);
