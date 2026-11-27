@@ -15,10 +15,96 @@ function getHeadlineAttr(h) {
   return attrs;
 }
 
-export function viewOverview() {
-  const popH = HEADLINES.find(h => h.id === 'population');
-  const unempH = HEADLINES.find(h => h.id === 'unemployment');
+function miniSparkline(points) {
+  if (!points || points.length === 0) return '';
+  const vals = points.map(p => p.value);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const width = 120;
+  const height = 28;
+  const padding = 3;
+  const innerHeight = height - padding * 2;
+  const ptsStr = points.map((p, idx) => {
+    const x = (idx / (points.length - 1)) * width;
+    const y = height - padding - ((p.value - min) / range) * innerHeight;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" style="display: block; margin-top: 0.75rem;"><polyline fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${ptsStr}"/></svg>`;
+}
 
+function getDeltaInfo(id, h) {
+  let deltaVal, prevYear, isPct = false, isPerCapita = false;
+  let isGood = true;
+  let seriesObj = null;
+
+  if (id === 'population') {
+    seriesObj = SERIES.population;
+    const pts = seriesObj.points;
+    const last = pts[pts.length - 1];
+    const prev = pts[pts.length - 2];
+    deltaVal = ((last.value - prev.value) / prev.value) * 100;
+    prevYear = prev.year;
+    isPct = true;
+    isGood = deltaVal >= 0;
+  } else if (id === 'gdp') {
+    seriesObj = SERIES['gdp-per-capita'];
+    const pts = seriesObj.points;
+    const last = pts[pts.length - 1];
+    const prev = pts[pts.length - 2];
+    deltaVal = ((last.value - prev.value) / prev.value) * 100;
+    prevYear = prev.year;
+    isPct = true;
+    isPerCapita = true;
+    isGood = deltaVal >= 0;
+  } else if (id === 'gdp-growth') {
+    seriesObj = SERIES['gdp-growth'];
+    const pts = seriesObj.points;
+    const last = pts[pts.length - 1];
+    const prev = pts[pts.length - 2];
+    deltaVal = last.value - prev.value;
+    prevYear = prev.year;
+    isGood = deltaVal >= 0;
+  } else if (id === 'poverty') {
+    seriesObj = SERIES.poverty;
+    const pts = seriesObj.points;
+    const lastPt = pts[pts.length - 1];
+    const headlineVal = parseFloat(h.value);
+    deltaVal = headlineVal - lastPt.value;
+    prevYear = lastPt.year;
+    isGood = deltaVal <= 0;
+  } else if (id === 'unemployment') {
+    seriesObj = SERIES.unemployment;
+    const pts = seriesObj.points;
+    const last = pts[pts.length - 1];
+    const prev = pts[pts.length - 2];
+    deltaVal = last.value - prev.value;
+    prevYear = prev.year;
+    isGood = deltaVal <= 0;
+  } else if (id === 'inflation') {
+    seriesObj = SERIES.inflation;
+    const pts = seriesObj.points;
+    const last = pts[pts.length - 1];
+    const prev = pts[pts.length - 2];
+    deltaVal = last.value - prev.value;
+    prevYear = prev.year;
+    isGood = deltaVal <= 0;
+  }
+
+  const sign = deltaVal > 0 ? '+' : '';
+  const formattedVal = isPct ? `${sign}${deltaVal.toFixed(1)}%` : `${sign}${deltaVal.toFixed(2)} pts`;
+  const arrow = deltaVal >= 0 ? '↑' : '↓';
+  const text = isPerCapita
+    ? `${arrow} Per capita ${formattedVal} vs ${prevYear}`
+    : `${arrow} ${formattedVal} vs ${prevYear}`;
+
+  const colorStyle = isGood ? '' : 'color: var(--primary);';
+  const sparkline = seriesObj ? miniSparkline(seriesObj.points) : '';
+
+  return { text, colorStyle, sparkline };
+}
+
+export function viewOverview() {
   return `
     <div class="hero-band">
       <p class="hero-eyebrow">${t('hero_eyebrow')}</p>
@@ -28,44 +114,62 @@ export function viewOverview() {
 
     <section class="view-section">
       <div class="bento-grid">
-        <div class="tile tile-pop" data-id="${popH.id}">
-          <div>
-            <div class="stat-label">${pick(popH, 'label')}</div>
-            <div class="mega-figure" ${getHeadlineAttr(popH)}>${pick(popH, 'value')} <span class="stat-unit">${unit(popH.unit)}</span></div>
-            <div class="mega-sub">${pick(popH, 'note')}</div>
-          </div>
-          <div style="border-top: 1px solid var(--hairline); margin-top: 1.25rem; padding-top: 1.25rem;">
-            <div class="stat-label">${pick(unempH, 'label')}</div>
-            <div class="stat-figure" ${getHeadlineAttr(unempH)}>${pick(unempH, 'value')} <span class="stat-unit">${unempH.unit}</span></div>
-            <div class="mega-sub">${pick(unempH, 'note')}</div>
-          </div>
-          <div class="stat-source" style="margin-top: 1rem;">${t('source')}: ${popH.source}, ${popH.year}</div>
-        </div>
-
-        <div class="tile tile-chart">
-          <div class="chart-meta">
-            <h3>${pick(SERIES.population, 'title')}</h3>
-            <span>${t('source')}: ${SERIES.population.source}</span>
-          </div>
-          <div class="chart-container">
-            ${charts.lineChart(SERIES.population.points, { title: pick(SERIES.population, 'title'), unit: unit(SERIES.population.unit), decimals: 1 })}
-          </div>
-          <p class="footnote">${pick(SERIES.population, 'note') || ''}</p>
-        </div>
-
-        ${['gdp', 'gdp-growth', 'inflation', 'poverty'].map(id => {
-          const h = HEADLINES.find(item => item.id === id);
+        ${HEADLINES.map(h => {
+          const delta = getDeltaInfo(h.id, h);
           return `
             <div class="tile tile-stat" data-id="${h.id}">
               <div>
                 <div class="stat-label">${pick(h, 'label')}</div>
                 <div class="stat-figure" ${getHeadlineAttr(h)}>${pick(h, 'value')} <span class="stat-unit">${unit(h.unit)}</span></div>
                 <div class="stat-note">${pick(h, 'note')}</div>
+                <div style="font-size: 0.85rem; margin-top: 0.35rem; ${delta.colorStyle}">${delta.text}</div>
+                ${delta.sparkline}
               </div>
               <div class="stat-source">${t('source')}: ${h.source}, ${h.year}</div>
             </div>
           `;
         }).join('')}
+
+        <div class="tile tile-chart">
+          <div class="chart-meta">
+            <h3 id="overview-chart-title">${pick(SERIES.population, 'title')}</h3>
+            <span>${t('source')}: ${SERIES.population.source}, <span id="overview-chart-range">${SERIES.population.points[0].year}–${SERIES.population.points[SERIES.population.points.length - 1].year}</span></span>
+          </div>
+          <div class="seg-control" style="margin-bottom: 1rem;">
+            <button data-series="population" aria-pressed="true">${pick(SERIES.population, 'title')}</button>
+            <button data-series="gdp-growth" aria-pressed="false">${pick(SERIES['gdp-growth'], 'title')}</button>
+            <button data-series="inflation" aria-pressed="false">${pick(SERIES.inflation, 'title')}</button>
+          </div>
+          <div class="chart-container" id="overview-chart">
+            ${charts.lineChart(SERIES.population.points, { title: pick(SERIES.population, 'title'), unit: unit(SERIES.population.unit), decimals: 1 })}
+          </div>
+          <p class="footnote">${pick(SERIES.population, 'note') || ''}</p>
+        </div>
+
+        <div class="tile tile-chart">
+          <div class="chart-meta">
+            <h3>${pick(SERIES.visitors, 'title')}</h3>
+            <span>${t('source')}: ${SERIES.visitors.source}</span>
+          </div>
+          <div class="chart-container">
+            ${charts.barChart(SERIES.visitors.points.map(p => ({ label: String(p.year), value: p.value })), { title: pick(SERIES.visitors, 'title'), unit: unit(SERIES.visitors.unit), decimals: 2 })}
+          </div>
+        </div>
+      </div>
+
+      <div class="tile tile-wide">
+        <div class="chart-meta">
+          <h3>${t('releases_h')}</h3>
+          <span>${t('releases_sub')}</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+          ${HEADLINES.map(h => `
+            <div style="flex: 1 1 180px; background: var(--surface-2); padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--hairline);">
+              <div style="font-weight: 600; font-size: 0.9rem;">${pick(h, 'label')}</div>
+              <div style="font-size: 0.825rem; color: var(--muted); margin-top: 0.25rem;">${h.year}, ${h.source}</div>
+            </div>
+          `).join('')}
+        </div>
       </div>
 
       <div class="tile tile-wide">
@@ -379,6 +483,28 @@ export function viewProvinces() {
     </div>
 
     <section class="view-section">
+      <div class="chart-card" id="compare">
+        <h3>${t('compare_h')}</h3>
+        <p class="chart-meta">${t('compare_sub')}</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem;">
+          <div style="flex: 1 1 200px;">
+            <label for="compare-a" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">${t('compare_a')}</label>
+            <select id="compare-a" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ink);">
+              <option value="">${t('compare_pick')}</option>
+              ${PROVINCES.items.map((p, idx) => `<option value="${idx}"${idx === 0 ? ' selected' : ''}>${pick(p, 'name')}</option>`).join('')}
+            </select>
+          </div>
+          <div style="flex: 1 1 200px;">
+            <label for="compare-b" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">${t('compare_b')}</label>
+            <select id="compare-b" style="width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid var(--hairline); background: var(--surface); color: var(--ink);">
+              <option value="">${t('compare_pick')}</option>
+              ${PROVINCES.items.map((p, idx) => `<option value="${idx}"${idx === 1 ? ' selected' : ''}>${pick(p, 'name')}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div id="compare-result"></div>
+      </div>
+
       <div class="chart-card">
         <div class="chart-meta">
           <h3>${t('prov_ranking_h')}</h3>

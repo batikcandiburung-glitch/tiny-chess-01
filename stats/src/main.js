@@ -172,10 +172,13 @@ function renderRoute() {
 
     try {
       // Post-render page-specific wiring
-      if (routePath === '/economy') {
+      if (routePath === '/') {
+        initOverviewChartSwitch();
+      } else if (routePath === '/economy') {
         initEconomyExplorer();
       } else if (routePath === '/provinces') {
         initProvinceSorting();
+        initProvinceCompare();
       }
 
       // Entrance and scroll animations
@@ -522,6 +525,56 @@ function initEconomyExplorer() {
   updateExplorer();
 }
 
+function initOverviewChartSwitch() {
+  try {
+    const chartEl = document.getElementById('overview-chart');
+    if (!chartEl) return;
+    const tile = chartEl.closest('.tile');
+    if (!tile) return;
+    const buttons = tile.querySelectorAll('[data-series]');
+    if (!buttons || buttons.length === 0) return;
+
+    const titleEl = document.getElementById('overview-chart-title');
+    const rangeEl = document.getElementById('overview-chart-range');
+
+    buttons.forEach(btn => {
+      btn.onclick = () => {
+        try {
+          const seriesId = btn.getAttribute('data-series');
+          if (!seriesId || !SERIES[seriesId]) return;
+          const seriesData = SERIES[seriesId];
+
+          buttons.forEach(b => {
+            b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+          });
+
+          const decimals = seriesId === 'population' ? 1 : 2;
+
+          chartEl.innerHTML = charts.lineChart(seriesData.points, {
+            title: pick(seriesData, 'title'),
+            unit: unit(seriesData.unit),
+            decimals: decimals
+          });
+
+          if (titleEl) {
+            titleEl.textContent = pick(seriesData, 'title');
+          }
+
+          if (rangeEl && seriesData.points && seriesData.points.length > 0) {
+            const firstYear = seriesData.points[0].year;
+            const lastYear = seriesData.points[seriesData.points.length - 1].year;
+            rangeEl.textContent = `${firstYear}–${lastYear}`;
+          }
+        } catch (e) {
+          // silent null-guarded catch
+        }
+      };
+    });
+  } catch (e) {
+    // silent null-guarded catch
+  }
+}
+
 function downloadCsv(filename, csvContent) {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -601,6 +654,95 @@ function initProvinceSorting() {
   }
 }
 
+function initProvinceCompare() {
+  try {
+    const selectA = document.getElementById('compare-a');
+    const selectB = document.getElementById('compare-b');
+    const resultEl = document.getElementById('compare-result');
+    if (!selectA || !selectB || !resultEl) return;
+
+    const update = () => {
+      try {
+        const valA = selectA.value;
+        const valB = selectB.value;
+        if (valA === '' || valB === '') {
+          resultEl.innerHTML = '';
+          return;
+        }
+        const idxA = parseInt(valA, 10);
+        const idxB = parseInt(valB, 10);
+        const pA = PROVINCES.items[idxA];
+        const pB = PROVINCES.items[idxB];
+        if (!pA || !pB) {
+          resultEl.innerHTML = '';
+          return;
+        }
+
+        const maxPop = Math.max(pA.population, pB.population);
+        const widthA = maxPop > 0 ? (pA.population / maxPop) * 100 : 0;
+        const widthB = maxPop > 0 ? (pB.population / maxPop) * 100 : 0;
+
+        let largerName, smallerName, ratio;
+        if (pA.population > pB.population) {
+          largerName = pick(pA, 'name');
+          smallerName = pick(pB, 'name');
+          ratio = pB.population > 0 ? (pA.population / pB.population).toFixed(2) : '1.00';
+        } else if (pB.population > pA.population) {
+          largerName = pick(pB, 'name');
+          smallerName = pick(pA, 'name');
+          ratio = pA.population > 0 ? (pB.population / pA.population).toFixed(2) : '1.00';
+        } else {
+          largerName = pick(pA, 'name');
+          smallerName = pick(pB, 'name');
+          ratio = '1.00';
+        }
+
+        const timesStr = t('compare_times').replace('{n}', ratio);
+        const summarySentence = `${largerName} ${timesStr} ${smallerName}.`;
+        const diff = Math.abs(pA.population - pB.population);
+        const diffText = diff.toLocaleString(numLocale());
+
+        resultEl.innerHTML = `
+          <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div style="background: var(--surface-2); padding: 1rem; border-radius: 8px;">
+                <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem;">${pick(pA, 'name')}</div>
+                <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">${t('rank_word')} ${idxA + 1}</div>
+                <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">${pA.population.toLocaleString(numLocale())}</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${pA.share.toFixed(1)}%</div>
+                <div style="margin-top: 0.75rem; background: var(--surface); height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div style="width: ${widthA}%; height: 100%; background: var(--primary); border-radius: 4px;"></div>
+                </div>
+              </div>
+              <div style="background: var(--surface-2); padding: 1rem; border-radius: 8px;">
+                <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem;">${pick(pB, 'name')}</div>
+                <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">${t('rank_word')} ${idxB + 1}</div>
+                <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">${pB.population.toLocaleString(numLocale())}</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${pB.share.toFixed(1)}%</div>
+                <div style="margin-top: 0.75rem; background: var(--surface); height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div style="width: ${widthB}%; height: 100%; background: var(--ink-55); border-radius: 4px;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="background: var(--surface-2); padding: 1rem; border-radius: 8px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
+              <div>${summarySentence}</div>
+              <div><strong>${t('compare_diff')}:</strong> ${diffText}</div>
+            </div>
+          </div>
+        `.trim();
+      } catch (err) {
+        // never break page
+      }
+    };
+
+    selectA.onchange = update;
+    selectB.onchange = update;
+    update();
+  } catch (e) {
+    // guard against null / errors
+  }
+}
+
 // --- Settings panel + chrome localization ---
 function localizeChrome() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -630,11 +772,91 @@ function initSettings() {
   if (!panel || !openBtn) return;
   settingsInitDone = true;
 
+  const closePanel = () => {
+    try {
+      panel.hidden = true;
+      openBtn.setAttribute('aria-expanded', 'false');
+    } catch (e) {}
+  };
+
+  const positionPanel = () => {
+    try {
+      if (panel.hidden) return;
+      const rect = openBtn.getBoundingClientRect();
+      const panelWidth = panel.offsetWidth || 320;
+      const panelHeight = panel.offsetHeight || 200;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      if (vw - rect.right >= 344) {
+        let left = rect.right + 12;
+        let top = rect.top;
+        if (top + panelHeight > vh - 8) {
+          top = Math.max(8, vh - panelHeight - 8);
+        }
+        if (top < 8) top = 8;
+        panel.style.left = left + 'px';
+        panel.style.top = top + 'px';
+      } else {
+        let left = rect.left;
+        if (left + panelWidth > vw - 8) {
+          left = Math.max(8, vw - panelWidth - 8);
+        }
+        if (left < 8) left = 8;
+
+        let top = rect.bottom + 8;
+        if (top + panelHeight > vh - 8) {
+          const aboveTop = rect.top - panelHeight - 8;
+          if (aboveTop >= 8) {
+            top = aboveTop;
+          } else {
+            top = Math.max(8, Math.min(top, vh - panelHeight - 8));
+          }
+        }
+        panel.style.left = left + 'px';
+        panel.style.top = top + 'px';
+      }
+    } catch (e) {}
+  };
+
   openBtn.addEventListener('click', () => {
-    const willOpen = panel.hidden;
-    panel.hidden = !willOpen;
-    openBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    if (willOpen) syncSettingsUI();
+    try {
+      const willOpen = panel.hidden;
+      if (willOpen) {
+        panel.hidden = false;
+        openBtn.setAttribute('aria-expanded', 'true');
+        syncSettingsUI();
+        positionPanel();
+      } else {
+        closePanel();
+      }
+    } catch (e) {}
+  });
+
+  document.addEventListener('pointerdown', (e) => {
+    try {
+      if (!panel.hidden) {
+        if (!panel.contains(e.target) && !openBtn.contains(e.target)) {
+          closePanel();
+        }
+      }
+    } catch (e) {}
+  });
+
+  document.addEventListener('keydown', (e) => {
+    try {
+      if (e.key === 'Escape' && !panel.hidden) {
+        closePanel();
+      }
+    } catch (e) {}
+  });
+
+  window.addEventListener('resize', () => {
+    try {
+      if (!panel.hidden) {
+        positionPanel();
+      }
+    } catch (e) {}
   });
 
   panel.querySelectorAll('.seg-control').forEach(group => {

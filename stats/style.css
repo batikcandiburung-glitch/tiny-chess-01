@@ -1019,18 +1019,16 @@ button#series-csv:active {
   flex: 0 0 auto;
 }
 
-.settings-btn .settings-chevron {
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.settings-btn[aria-expanded="true"] .settings-chevron {
-  transform: rotate(180deg);
-}
-
 .settings-panel {
-  margin-top: 0.5rem;
-  padding: 0.25rem 0.85rem 0.5rem;
+  position: fixed;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  box-shadow: var(--shadow-hover);
+  padding: 1rem 1.1rem;
+  z-index: 200;
   animation: settingsIn 0.18s ease;
 }
 
