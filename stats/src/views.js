@@ -113,7 +113,7 @@ export function viewOverview() {
     </div>
 
     <section class="view-section">
-      <div class="bento-grid">
+      <div class="kpi-grid">
         ${HEADLINES.map(h => {
           const delta = getDeltaInfo(h.id, h);
           return `
@@ -129,7 +129,9 @@ export function viewOverview() {
             </div>
           `;
         }).join('')}
+      </div>
 
+      <div class="bento-grid">
         <div class="tile tile-chart">
           <div class="chart-meta">
             <h3 id="overview-chart-title">${pick(SERIES.population, 'title')}</h3>

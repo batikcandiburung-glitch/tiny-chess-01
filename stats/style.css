@@ -294,6 +294,15 @@ section.view-section {
   margin-top: 16px;
 }
 
+/* KPI grid: six uniform cards in two rows of three, so the two chart
+   tiles below sit side by side on their own row. */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
 .tile {
   background-color: var(--surface);
   border: 1px solid var(--hairline);
@@ -869,6 +878,9 @@ button#series-csv:active {
   .bento-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .tile-pop, .tile-chart {
     grid-column: span 2;
   }
@@ -957,6 +969,9 @@ button#series-csv:active {
   }
 
   .bento-grid {
+    grid-template-columns: 1fr;
+  }
+  .kpi-grid {
     grid-template-columns: 1fr;
   }
   .tile-pop, .tile-chart, .tile-stat, .tile-wide {
@@ -1145,6 +1160,7 @@ html[data-view="phone"] .hero-band { padding: 24px; }
 html[data-view="phone"] .hero-band h2 { font-size: 2rem; }
 html[data-view="phone"] .mega-figure { font-size: 3rem; }
 html[data-view="phone"] .bento-grid { grid-template-columns: 1fr; }
+html[data-view="phone"] .kpi-grid { grid-template-columns: 1fr; }
 html[data-view="phone"] .tile-pop,
 html[data-view="phone"] .tile-chart,
 html[data-view="phone"] .tile-stat,
@@ -1204,6 +1220,7 @@ html[data-view="desktop"] .hero-band { padding: 40px; }
 html[data-view="desktop"] .hero-band h2 { font-size: 2.9rem; }
 html[data-view="desktop"] .mega-figure { font-size: 4.3rem; }
 html[data-view="desktop"] .bento-grid { grid-template-columns: repeat(4, 1fr); }
+html[data-view="desktop"] .kpi-grid { grid-template-columns: repeat(3, 1fr); }
 html[data-view="desktop"] .tile-pop { grid-column: span 2; }
 html[data-view="desktop"] .tile-chart { grid-column: span 2; }
 html[data-view="desktop"] .tile-stat { grid-column: span 1; }
