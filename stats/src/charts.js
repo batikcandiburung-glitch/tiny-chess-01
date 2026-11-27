@@ -302,7 +302,15 @@ export function barChart(items, options = {}) {
 
   if (!items || items.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
 
-  const margin = { top: 35, right: 30, bottom: 60, left: 68 };
+  // X labels: short labels in wide-enough columns stay horizontal; long
+  // ones rotate, and the bottom margin (plus total height) grows to fit
+  // the rotated label's full vertical extent so nothing is clipped.
+  const estLabelW = Math.max(...items.map(d => String(d.label).length)) * 6.3;
+  const colW = (width - 68 - 30) / items.length;
+  const rotateLabels = estLabelW > colW - 6;
+  const labelExtent = rotateLabels ? Math.min(estLabelW * 0.574, 120) : 0;
+  const margin = { top: 35, right: 30, bottom: rotateLabels ? Math.round(22 + labelExtent) : 36, left: 68 };
+  const svgH = height + Math.max(0, margin.bottom - 60);
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -328,12 +336,14 @@ export function barChart(items, options = {}) {
     return `
       <rect class="grow-bar" data-orient="v" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${Math.max(h, 2).toFixed(1)}" fill="url(#barGrad)" rx="4" data-tip="${item.label} — ${item.value.toFixed(decimals)}${unit ? ' ' + unit : ''}"/>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle" font-size="10" fill="${INK_COLOR}" font-weight="600">${item.value.toFixed(decimals)}</text>
-      <text x="${(x + barWidth / 2).toFixed(1)}" y="${(margin.top + chartHeight + 16).toFixed(1)}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}" transform="rotate(-35, ${(x + barWidth / 2).toFixed(1)}, ${(margin.top + chartHeight + 16).toFixed(1)})">${item.label}</text>
+      ${rotateLabels
+        ? `<text x="${(x + barWidth / 2).toFixed(1)}" y="${(margin.top + chartHeight + 16).toFixed(1)}" text-anchor="end" font-size="11" fill="${MUTE_COLOR}" transform="rotate(-35, ${(x + barWidth / 2).toFixed(1)}, ${(margin.top + chartHeight + 16).toFixed(1)})">${item.label}</text>`
+        : `<text x="${(x + barWidth / 2).toFixed(1)}" y="${(margin.top + chartHeight + 18).toFixed(1)}" text-anchor="middle" font-size="11" fill="${MUTE_COLOR}">${item.label}</text>`}
     `;
   }).join('');
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 ${width} ${svgH}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
       <title>${title}</title>
       <defs>
         <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
