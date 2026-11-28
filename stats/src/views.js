@@ -576,9 +576,9 @@ export function viewProvinces() {
             <thead>
               <tr>
                 <th>${t('th_province')}</th>
-                <th class="num" data-sort="population" style="cursor: pointer;" title="${t('sort_pop')}">${t('th_population')} &↕;</th>
-                <th class="num" data-sort="share" style="cursor: pointer;" title="${t('sort_share')}">${t('th_share')} &↕;</th>
-                <th class="num" data-sort="hdi" style="cursor: pointer;">${t('th_hdi')} &↕;</th>
+                <th class="num" data-sort="population" style="cursor: pointer;" title="${t('sort_pop')}">${t('th_population')} &#8597;</th>
+                <th class="num" data-sort="share" style="cursor: pointer;" title="${t('sort_share')}">${t('th_share')} &#8597;</th>
+                <th class="num" data-sort="hdi" style="cursor: pointer;">${t('th_hdi')} &#8597;</th>
               </tr>
             </thead>
             <tbody>
