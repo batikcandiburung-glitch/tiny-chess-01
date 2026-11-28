@@ -394,6 +394,44 @@ export const PROVINCES = {
   ]
 };
 
+export const ISLANDS = {
+  note: "Island-group figures are rounded; shares may not sum to exactly 100.",
+  noteId: "Angka kelompok pulau dibulatkan; proporsi mungkin tidak berjumlah tepat 100.",
+  source: "BPS, Population Census 2020",
+  items: [
+    { name: "Java", nameId: "Jawa", population: 151.6, share: 56.1 },
+    { name: "Sumatra", population: 58.6, share: 21.7 },
+    { name: "Sulawesi", population: 19.9, share: 7.4 },
+    { name: "Kalimantan", population: 16.6, share: 6.1 },
+    { name: "Bali and Nusa Tenggara", nameId: "Bali dan Nusa Tenggara", population: 15.0, share: 5.5 },
+    { name: "Maluku and Papua", nameId: "Maluku dan Papua", population: 8.9, share: 3.3 }
+  ]
+};
+
+export const AGE = {
+  note: "Seven in ten Indonesians are of working age — the demographic bonus BPS projects to peak around 2030.",
+  noteId: "Tujuh dari sepuluh penduduk Indonesia berada di usia kerja — bonus demografi yang diproyeksikan BPS mencapai puncak sekitar 2030.",
+  source: "BPS, Population Census 2020",
+  items: [
+    { name: "Ages 0-14", nameId: "Umur 0–14", percent: 23.3 },
+    { name: "Ages 15-64 (working age)", nameId: "Umur 15–64 (usia kerja)", percent: 70.7 },
+    { name: "Ages 65 and over", nameId: "Umur 65 ke atas", percent: 6.0 }
+  ]
+};
+
+export const RELIGION = {
+  source: "BPS, Population Census 2020",
+  items: [
+    { name: "Islam", percent: 86.88 },
+    { name: "Protestant", nameId: "Protestan", percent: 7.47 },
+    { name: "Catholic", nameId: "Katolik", percent: 3.06 },
+    { name: "Hindu", percent: 1.71 },
+    { name: "Buddhist", nameId: "Buddha", percent: 0.72 },
+    { name: "Confucian", nameId: "Konghucu", percent: 0.05 },
+    { name: "Other", nameId: "Lainnya", percent: 0.11 }
+  ]
+};
+
 export const SOURCES = [
   { id: 1, publisher: "BPS – Statistics Indonesia", covers: "national accounts and GDP releases 2024–2025", coversId: "neraca nasional dan rilis PDB 2024–2025" },
   { id: 2, publisher: "BPS – Statistics Indonesia", covers: "Consumer price index and inflation releases 2015–2024", coversId: "indeks harga konsumen dan rilis inflasi 2015–2024" },
