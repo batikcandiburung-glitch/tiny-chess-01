@@ -755,6 +755,8 @@ function initProvinceSorting() {
             <td class="num">${p.population.toLocaleString(numLocale())}</td>
             <td class="num">${p.share.toFixed(1)}%</td>
             <td class="num">${p.hdi.toFixed(2)}</td>
+            <td class="num">${p.poverty.toFixed(2)}%</td>
+            <td class="num">${p.grdpPc.toFixed(1)}</td>
           </tr>
         `).join('');
       }
@@ -839,6 +841,8 @@ function initProvinceCompare() {
                 <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">${pA.population.toLocaleString(numLocale())}</div>
                 <div style="font-size: 0.85rem; color: var(--muted);">${pA.share.toFixed(1)}%</div>
                 <div style="font-size: 0.85rem; color: var(--muted);">${t('th_hdi')}: ${pA.hdi.toFixed(2)}</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${t('lbl_poverty')}: ${pA.poverty.toFixed(2)}%</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${t('lbl_grdp_pc')}: Rp ${pA.grdpPc.toFixed(1)} million</div>
                 <div style="margin-top: 0.75rem; background: var(--surface); height: 8px; border-radius: 4px; overflow: hidden;">
                   <div style="width: ${widthA}%; height: 100%; background: var(--primary); border-radius: 4px;"></div>
                 </div>
@@ -849,6 +853,8 @@ function initProvinceCompare() {
                 <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">${pB.population.toLocaleString(numLocale())}</div>
                 <div style="font-size: 0.85rem; color: var(--muted);">${pB.share.toFixed(1)}%</div>
                 <div style="font-size: 0.85rem; color: var(--muted);">${t('th_hdi')}: ${pB.hdi.toFixed(2)}</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${t('lbl_poverty')}: ${pB.poverty.toFixed(2)}%</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${t('lbl_grdp_pc')}: Rp ${pB.grdpPc.toFixed(1)} million</div>
                 <div style="margin-top: 0.75rem; background: var(--surface); height: 8px; border-radius: 4px; overflow: hidden;">
                   <div style="width: ${widthB}%; height: 100%; background: var(--ink-55); border-radius: 4px;"></div>
                 </div>
@@ -858,6 +864,8 @@ function initProvinceCompare() {
               <div>${summarySentence}</div>
               <div><strong>${t('compare_diff')}:</strong> ${diffText}</div>
               <div><strong>${t('th_hdi')}:</strong> ${pick(pA, 'name')} ${pA.hdi.toFixed(2)} · ${pick(pB, 'name')} ${pB.hdi.toFixed(2)}</div>
+              <div><strong>${t('lbl_poverty')}:</strong> ${pick(pA, 'name')} ${pA.poverty.toFixed(2)}% · ${pick(pB, 'name')} ${pB.poverty.toFixed(2)}%</div>
+              <div><strong>${t('lbl_grdp_pc')}:</strong> ${pick(pA, 'name')} Rp ${pA.grdpPc.toFixed(1)} million · ${pick(pB, 'name')} Rp ${pB.grdpPc.toFixed(1)} million</div>
             </div>
           </div>
         `.trim();

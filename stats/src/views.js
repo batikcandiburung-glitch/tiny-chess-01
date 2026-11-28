@@ -579,6 +579,8 @@ export function viewProvinces() {
                 <th class="num" data-sort="population" style="cursor: pointer;" title="${t('sort_pop')}">${t('th_population')} &#8597;</th>
                 <th class="num" data-sort="share" style="cursor: pointer;" title="${t('sort_share')}">${t('th_share')} &#8597;</th>
                 <th class="num" data-sort="hdi" style="cursor: pointer;">${t('th_hdi')} &#8597;</th>
+                <th class="num" data-sort="poverty" style="cursor: pointer;">${t('th_poverty')} &#8597;</th>
+                <th class="num" data-sort="grdpPc" style="cursor: pointer;">${t('th_grdp_pc')} &#8597;</th>
               </tr>
             </thead>
             <tbody>
@@ -588,6 +590,8 @@ export function viewProvinces() {
                   <td class="num" data-value="${p.population}">${p.population.toLocaleString(numLocale())}</td>
                   <td class="num" data-value="${p.share}">${p.share.toFixed(1)}%</td>
                   <td class="num" data-value="${p.hdi}">${p.hdi.toFixed(2)}</td>
+                  <td class="num" data-value="${p.poverty}">${p.poverty.toFixed(2)}%</td>
+                  <td class="num" data-value="${p.grdpPc}">${p.grdpPc.toFixed(1)}</td>
                 </tr>
               `).join('')}
             </tbody>
