@@ -483,3 +483,59 @@ export function donutChart(items, options = {}) {
     </svg>
   `.trim();
 }
+
+export function treemapChart(items, options = {}) {
+  const { title = "", width = 920, height = 520 } = options;
+  refreshThemeColors();
+  if (!items || items.length === 0) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
+  const total = items.reduce((s, d) => s + d.value, 0);
+  if (!total) return `<svg viewBox="0 0 ${width} ${height}"><text x="20" y="50">No data</text></svg>`;
+  const hdis = items.map(d => d.hdi).filter(v => v != null);
+  const hMin = Math.min(...hdis), hMax = Math.max(...hdis);
+  const light = [243, 219, 221], deep = [176, 24, 36];
+  const fillFor = (hdi) => {
+    const k = hMax > hMin ? (hdi - hMin) / (hMax - hMin) : 0.5;
+    const c = light.map((v, i) => Math.round(v + (deep[i] - v) * k));
+    return { fill: `rgb(${c[0]},${c[1]},${c[2]})`, dark: k > 0.45 };
+  };
+  const rects = [];
+  const sorted = [...items].sort((a, b) => b.value - a.value);
+  function worst(row, side) {
+    const s = row.reduce((a, d) => a + d.a, 0);
+    if (!s || !side) return Infinity;
+    const mx = Math.max(...row.map(d => d.a)), mn = Math.min(...row.map(d => d.a));
+    return Math.max((side * side * mx) / (s * s), (s * s) / (side * side * mn));
+  }
+  function layoutScaled(list, x, y, w, h) {
+    if (!list.length || w <= 0 || h <= 0) return;
+    if (list.length === 1) { rects.push({ ...list[0], x, y, w, h }); return; }
+    const side = Math.min(w, h);
+    let row = [list[0]], i = 1;
+    while (i < list.length && worst([...row, list[i]], side) <= worst(row, side)) { row.push(list[i]); i++; }
+    const rowArea = row.reduce((a, d) => a + d.a, 0);
+    const rest = list.slice(row.length);
+    if (w >= h) {
+      const rw = rowArea / h;
+      let cy = y;
+      for (const d of row) { const rh = d.a / rw; rects.push({ ...d, x, y: cy, w: rw, h: rh }); cy += rh; }
+      layoutScaled(rest, x + rw, y, w - rw, h);
+    } else {
+      const rh = rowArea / w;
+      let cx = x;
+      for (const d of row) { const cw = d.a / rh; rects.push({ ...d, x: cx, y, w: cw, h: rh }); cx += cw; }
+      layoutScaled(rest, x, y + rh, w, h - rh);
+    }
+  }
+  const scale = (width * height) / total;
+  layoutScaled(sorted.map(d => ({ ...d, a: d.value * scale })), 0, 0, width, height);
+  const cells = rects.map(r => {
+    const f = fillFor(r.hdi);
+    const tc = f.dark ? '#FFFFFF' : INK_COLOR;
+    const showName = r.w >= 56 && r.h >= 24;
+    const showVal = r.w >= 78 && r.h >= 42;
+    const maxChars = Math.max(3, Math.floor((r.w - 12) / 6.6));
+    const name = r.label.length > maxChars ? r.label.slice(0, maxChars) + '…' : r.label;
+    return `<rect x="${(r.x + 1).toFixed(1)}" y="${(r.y + 1).toFixed(1)}" width="${Math.max(r.w - 2, 1).toFixed(1)}" height="${Math.max(r.h - 2, 1).toFixed(1)}" rx="5" fill="${f.fill}"/>${showName ? `<text x="${(r.x + 8).toFixed(1)}" y="${(r.y + 17).toFixed(1)}" font-size="11.5" font-weight="700" fill="${tc}">${name}</text>` : ''}${showVal ? `<text x="${(r.x + 8).toFixed(1)}" y="${(r.y + 33).toFixed(1)}" font-size="11" fill="${tc}" opacity="0.85">${(r.value / 1e6).toFixed(1)}M · HDI ${r.hdi.toFixed(2)}</text>` : ''}`;
+  }).join('');
+  return `<svg viewBox="0 0 ${width} ${height}" width="100%" xmlns="http://www.w3.org/2000/svg"><title>${title}</title>${cells}</svg>`.trim();
+}

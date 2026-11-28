@@ -567,6 +567,17 @@ export function viewProvinces() {
         </div>
       </div>
 
+      <div class="chart-card">
+        <div class="chart-meta">
+          <h3>${t('treemap_h')}</h3>
+          <span>${t('source')}: ${PROVINCES.source}</span>
+        </div>
+        <div class="chart-container">
+          ${charts.treemapChart(PROVINCES.items.map(p => ({ label: pick(p, 'name'), value: p.population, hdi: p.hdi })), { title: t('treemap_h') })}
+        </div>
+        <p class="footnote">${t('treemap_note')}</p>
+      </div>
+
       <div class="table-card">
         <h3>${t('prov_breakdown_h')}</h3>
         <p class="chart-meta">${t('prov_sort_hint')} ${t('source')}: ${PROVINCES.source}.</p>
