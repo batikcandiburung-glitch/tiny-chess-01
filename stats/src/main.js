@@ -754,6 +754,7 @@ function initProvinceSorting() {
             <td><strong>${pick(p, 'name')}</strong></td>
             <td class="num">${p.population.toLocaleString(numLocale())}</td>
             <td class="num">${p.share.toFixed(1)}%</td>
+            <td class="num">${p.hdi.toFixed(2)}</td>
           </tr>
         `).join('');
       }
@@ -837,6 +838,7 @@ function initProvinceCompare() {
                 <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">${t('rank_word')} ${idxA + 1}</div>
                 <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">${pA.population.toLocaleString(numLocale())}</div>
                 <div style="font-size: 0.85rem; color: var(--muted);">${pA.share.toFixed(1)}%</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${t('th_hdi')}: ${pA.hdi.toFixed(2)}</div>
                 <div style="margin-top: 0.75rem; background: var(--surface); height: 8px; border-radius: 4px; overflow: hidden;">
                   <div style="width: ${widthA}%; height: 100%; background: var(--primary); border-radius: 4px;"></div>
                 </div>
@@ -846,6 +848,7 @@ function initProvinceCompare() {
                 <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">${t('rank_word')} ${idxB + 1}</div>
                 <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">${pB.population.toLocaleString(numLocale())}</div>
                 <div style="font-size: 0.85rem; color: var(--muted);">${pB.share.toFixed(1)}%</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">${t('th_hdi')}: ${pB.hdi.toFixed(2)}</div>
                 <div style="margin-top: 0.75rem; background: var(--surface); height: 8px; border-radius: 4px; overflow: hidden;">
                   <div style="width: ${widthB}%; height: 100%; background: var(--ink-55); border-radius: 4px;"></div>
                 </div>
@@ -854,6 +857,7 @@ function initProvinceCompare() {
             <div style="background: var(--surface-2); padding: 1rem; border-radius: 8px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.5rem;">
               <div>${summarySentence}</div>
               <div><strong>${t('compare_diff')}:</strong> ${diffText}</div>
+              <div><strong>${t('th_hdi')}:</strong> ${pick(pA, 'name')} ${pA.hdi.toFixed(2)} · ${pick(pB, 'name')} ${pB.hdi.toFixed(2)}</div>
             </div>
           </div>
         `.trim();

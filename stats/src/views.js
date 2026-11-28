@@ -563,7 +563,7 @@ export function viewProvinces() {
           <span>${t('source')}: ${PROVINCES.source}</span>
         </div>
         <div class="chart-container">
-          ${charts.hbarChart(PROVINCES.items.map((p, i) => ({ rank: i + 1, label: pick(p, 'name'), value: +(p.population / 1e6).toFixed(2) })), { title: t('prov_chart_title'), unit: unit('million'), decimals: 2, height: 900 })}
+          ${charts.hbarChart(PROVINCES.items.map((p, i) => ({ rank: i + 1, label: pick(p, 'name'), value: +(p.population / 1e6).toFixed(2) })), { title: t('prov_chart_title'), unit: unit('million'), decimals: 2, height: 1000 })}
         </div>
       </div>
 
@@ -578,6 +578,7 @@ export function viewProvinces() {
                 <th>${t('th_province')}</th>
                 <th class="num" data-sort="population" style="cursor: pointer;" title="${t('sort_pop')}">${t('th_population')} &↕;</th>
                 <th class="num" data-sort="share" style="cursor: pointer;" title="${t('sort_share')}">${t('th_share')} &↕;</th>
+                <th class="num" data-sort="hdi" style="cursor: pointer;">${t('th_hdi')} &↕;</th>
               </tr>
             </thead>
             <tbody>
@@ -586,6 +587,7 @@ export function viewProvinces() {
                   <td><strong>${pick(p, 'name')}</strong></td>
                   <td class="num" data-value="${p.population}">${p.population.toLocaleString(numLocale())}</td>
                   <td class="num" data-value="${p.share}">${p.share.toFixed(1)}%</td>
+                  <td class="num" data-value="${p.hdi}">${p.hdi.toFixed(2)}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -637,6 +639,7 @@ export function viewCompare() {
                 <th>${t('th_province')}</th>
                 <th class="num">${t('th_population')}</th>
                 <th class="num">${t('th_share')}</th>
+                <th class="num">${t('th_hdi')}</th>
               </tr>
             </thead>
             <tbody>
@@ -645,6 +648,7 @@ export function viewCompare() {
                   <td><strong>${pick(p, 'name')}</strong></td>
                   <td class="num">${p.population.toLocaleString('en-US')}</td>
                   <td class="num">${p.share.toFixed(1)}%</td>
+                  <td class="num">${p.hdi.toFixed(2)}</td>
                 </tr>
               `).join('')}
             </tbody>
